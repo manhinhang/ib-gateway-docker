@@ -2,8 +2,6 @@ import pytest
 import subprocess
 import testinfra
 import os
-import time
-# from ibgw import IBGW
 
 IMAGE_NAME='ib_gateway'
 IB_GATEWAY_VERSION=972

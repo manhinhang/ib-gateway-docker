@@ -1,2 +1,6 @@
 **/__pycache__/
 **/*.pyc
+.github
+test
+requirements-test.txt
+.gitignore
