@@ -12,6 +12,12 @@ This docker image just installed:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.8.2)
 
+## Pull the Docker image from Docker Hub
+
+```bash
+docker pull manhinhang/ib-gateway-docker
+```
+
 ## Build & Run locally
 
 ### Build docker image
