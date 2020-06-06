@@ -1,5 +1,7 @@
 # IB Gateway docker
 
+![Build test](https://github.com/manhinhang/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)
+
 lightweight interactive brokers gateway docker
 
 It's just pure `IB Gateway` and don't include any VNC service (for security reason, I don't like expose extra port)
