@@ -43,4 +43,4 @@ RUN chmod +x /root/cmd.sh
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 
-RUN sh /root/cmd.sh
+ENTRYPOINT [ "sh", "/root/cmd.sh" ] 

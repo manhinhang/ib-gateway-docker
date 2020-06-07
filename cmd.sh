@@ -11,5 +11,4 @@ done
 
 echo "Xvfb is ready"
 
-tail -f /dev/null
-
+$@
