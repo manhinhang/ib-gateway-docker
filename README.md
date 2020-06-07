@@ -21,9 +21,9 @@ docker pull manhinhang/ib-gateway-docker
 
 ## Build & Run locally
 
-### Build docker image
 ```bash
-docker build -t ib-gateway .
+docker build -t ib-gateway-docker .
+docker run -d ib-gateway-docker tail -f /dev/null
 ```
 
 ### Create a container from the image and run it
@@ -35,11 +35,11 @@ docker run -d manhinhang/ib-gateway-docker tail -f /dev/null
 
 This example will using [ib_insync](https://github.com/erdewit/ib_insync) to demonstrate how to connect `IB Gateway`
 
-### Starting up ib gateway though [IBC](https://github.com/IbcAlpha/IBC)
+### Starting up `IB gateway` though [IBC](https://github.com/IbcAlpha/IBC) and using [ib_insync](https://github.com/erdewit/ib_insync) to connect `IB gateway`
 
 [IBC](https://github.com/IbcAlpha/IBC) is a greate tools for managing `IB Gateway` and [ib_insync](https://github.com/erdewit/ib_insync) is also provided interface to interacting [IBC](https://github.com/IbcAlpha/IBC).
 
-Example Code : [examples/ib_insync](./examples/ib_insync)
+Example Code: [examples/ib_insync](./examples/ib_insync)
 
 # Tests
 
