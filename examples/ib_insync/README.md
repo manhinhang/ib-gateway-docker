@@ -17,6 +17,9 @@ export IB_PASSWORD=# your interactive brokers account password
 
 docker run -v $(pwd)/scripts/bootstrap.py:/home/bootstrap.py \
 -v $(pwd)/scripts/connect_gateway.py:/home/connect_gateway.py \
--v $(pwd)/example.sh:/home/example.sh
+-v $(pwd)/example.sh:/home/example.sh \
+-e IB_ACCOUNT=$IB_ACCOUNT \
+-e IB_PASSWORD=$IB_PASSWORD \
+-e TRADE_MODE=$TRADE_MODE \
 manhinhang/ib-gateway-docker:latest sh /home/example.sh
 ```
