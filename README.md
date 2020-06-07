@@ -43,7 +43,7 @@ Example Code : [examples/ib_insync](./examples/ib_insync)
 
 # Tests
 
-The [test cases]((test/test_ib_gateway.py)) written with testinfra.
+The [test cases](test/test_ib_gateway.py) written with testinfra.
 
 Run the tests
 
