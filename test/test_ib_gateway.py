@@ -3,7 +3,7 @@ import subprocess
 import testinfra
 import os
 
-IMAGE_NAME='ib_gateway'
+IMAGE_NAME='ib-gateway-docker'
 IB_GATEWAY_VERSION=972
 account = os.environ['IB_ACCOUNT']
 password = os.environ['IB_PASSWORD']
@@ -16,7 +16,7 @@ def host(request):
     subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
     # run a container
     docker_id = subprocess.check_output(
-        ['docker', 'run', '-d', IMAGE_NAME]).decode().strip()
+        ['docker', 'run', '-d', IMAGE_NAME, "tail", "-f", "/dev/null"]).decode().strip()
     # return a testinfra connection to the container
     yield testinfra.get_host("docker://" + docker_id)
     # at the end of the test suite, destroy the container
