@@ -16,5 +16,5 @@ export IB_ACCOUNT=# your interactive brokers account name
 export IB_PASSWORD=# your interactive brokers account password
 
 docker run -v $(pwd)/scripts:/home/scripts \
--d manhinhang/ib-gateway-docker:latest python /home/scripts/bootstrap.py && python /home/scripts/connect_gateway.py
+-d manhinhang/ib-gateway-docker:latest pip install ib_insync pandas && python /home/scripts/bootstrap.py && python /home/scripts/connect_gateway.py
 ```
