@@ -3,7 +3,7 @@ import subprocess
 import testinfra
 import os
 
-IMAGE_NAME='ib_gateway'
+IMAGE_NAME='ib-gateway-docker'
 IB_GATEWAY_VERSION=972
 account = os.environ['IB_ACCOUNT']
 password = os.environ['IB_PASSWORD']

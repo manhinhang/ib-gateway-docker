@@ -27,7 +27,7 @@ docker build -t ib-gateway .
 
 ### Create a container from the image and run it
 ```bash
-docker run -d ib-gateway tail -f /dev/null
+docker run -d manhinhang/ib-gateway-docker tail -f /dev/null
 ```
 
 ## Container usage example
