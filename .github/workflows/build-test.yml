@@ -18,3 +18,17 @@ jobs:
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+    - name: Run examples
+      run: |
+        cd examples/ib_insync
+        docker run -v $(pwd)/scripts/bootstrap.py:/home/bootstrap.py \
+        -v $(pwd)/scripts/connect_gateway.py:/home/connect_gateway.py \
+        -v $(pwd)/example.sh:/home/example.sh \
+        -e IB_ACCOUNT=$IB_ACCOUNT \
+        -e IB_PASSWORD=$IB_PASSWORD \
+        -e TRADE_MODE=paper \
+        ib-gateway-docker sh /home/example.sh
+      env:
+        TRADE_MODE: paper
+        IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
+        IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
