@@ -95,7 +95,7 @@ print(df)
 Run there command in terminal
 
 ```bash
-docker_id=$(docker run -d ib-gateway)
+docker_id=$(docker run -d ib-gateway tail -f /dev/null)
 docker exec $docker_id pip install ib_insync
 docker exec $docker_id pip install pandas
 docker cp example.py $docker_id:/home/example.py
