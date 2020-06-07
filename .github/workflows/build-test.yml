@@ -23,7 +23,7 @@ jobs:
         cd examples/ib_insync
         docker run -v $(pwd)/scripts/bootstrap.py:/home/bootstrap.py \
         -v $(pwd)/scripts/connect_gateway.py:/home/connect_gateway.py \
-        -v $(pwd)/example.sh:/home/example.sh
+        -v $(pwd)/example.sh:/home/example.sh \
         ib-gateway-docker sh /home/example.sh
       env:
         TRADE_MODE: paper
