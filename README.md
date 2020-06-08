@@ -2,6 +2,7 @@
 
 ![Build test](https://github.com/manhinhang/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)
 [![Docker Pulls](https://img.shields.io/docker/pulls/manhinhang/ib-gateway-docker)](https://hub.docker.com/r/manhinhang/ib-gateway-docker)
+[![GitHub](https://img.shields.io/github/license/manhinhang/ib-gateway-docker)](https://github.com/manhinhang/ib-gateway-docker/blob/develop/LICENSE)
 
 lightweight interactive brokers gateway docker
 
