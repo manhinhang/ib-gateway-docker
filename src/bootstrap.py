@@ -1,6 +1,6 @@
-from ib_insync import IBC
+from ib_insync import IBC, IB
 import os
-from os import listdir
+import logging
 
 if __name__ == "__main__":
     ib_gateway_version = int(listdir("/root/Jts/ibgateway")[0])
@@ -10,3 +10,12 @@ if __name__ == "__main__":
     trade_mode='paper' # paper / live
     ibc = IBC(ib_gateway_version, gateway=True, tradingMode=trade_mode, userid=account, password=password)
     ibc.start()
+    ib = IB()
+    while not ib.isConnected():
+        try:
+            IB.sleep(1)
+            ib.connect('localhost', 4001, clientId=1)
+        except ConnectionRefusedError:
+            logging.warning('Still waiting gateway connection..')
+    ib.disconnect()
+    
