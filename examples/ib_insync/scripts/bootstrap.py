@@ -3,7 +3,7 @@ import os
 from os import listdir
 
 if __name__ == "__main__":
-    ib_gateway_version = int(listdir("ls /root/Jts/ibgateway")[0])
+    ib_gateway_version = int(listdir("/root/Jts/ibgateway")[0])
     account = os.environ['IB_ACCOUNT']
     password = os.environ['IB_PASSWORD']
     trade_mode = os.environ['TRADE_MODE']
