@@ -17,10 +17,11 @@ def host(request):
     subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
     # run a container
     docker_id = subprocess.check_output(
-        ['docker', 'run', '-d', IMAGE_NAME, 
+        ['docker', 'run', 
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADE_MODE={}'.format(trade_mode),
+        '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     # return a testinfra connection to the container
     yield testinfra.get_host("docker://" + docker_id)
