@@ -24,12 +24,20 @@ docker pull manhinhang/ib-gateway-docker
 
 ```bash
 docker build -t ib-gateway-docker .
-docker run -d ib-gateway-docker tail -f /dev/null
+docker run -d ib-gateway-docker \
+--env IB_ACCOUNT= \ #YOUR_USER_ID 
+--env IB_PASSWORD= \ #YOUR_PASSWORD  
+--env TRADE_MODE= \ #paper or live 
+tail -f /dev/null
 ```
 
 ### Create a container from the image and run it
 ```bash
-docker run -d manhinhang/ib-gateway-docker tail -f /dev/null
+docker run -d \
+--env IB_ACCOUNT= \ #YOUR_USER_ID 
+--env IB_PASSWORD= \ #YOUR_PASSWORD  
+--env TRADE_MODE= \ #paper or live 
+manhinhang/ib-gateway-docker tail -f /dev/null
 ```
 
 ## Container usage example
