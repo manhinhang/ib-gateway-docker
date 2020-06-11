@@ -23,34 +23,29 @@ def host(request):
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
 def test_ibgateway_version(host):
-    version = int(host.run("ls /root/Jts/ibgateway").stdout)
-    assert version == IB_GATEWAY_VERSION
+    int(host.run("ls /root/Jts/ibgateway").stdout)
 
 def test_ibc(host):
+    ib_gateway_version = int(host.run("ls /root/Jts/ibgateway").stdout)
     cmd = host.run("pip install ib_insync")
     assert cmd.rc == 0
     script = """from ib_insync import *
 ibc = IBC({}, gateway=True, tradingMode='paper', userid='{}', password='{}')
 ibc.start()
-""".format(IB_GATEWAY_VERSION, account, password)
+""".format(ib_gateway_version, account, password)
     print('script', script)
     cmd = host.run("python -c \"{}\"".format(script))
     assert cmd.rc == 0
 
-    script = """from ib_insync import *
-ibc = IBC({}, gateway=True, tradingMode='paper', userid='{}', password='{}')
-ibc.terminate()
-""".format(IB_GATEWAY_VERSION, account, password)
-    assert cmd.rc == 0
-
 def test_ib_connect(host):
+    ib_gateway_version = int(host.run("ls /root/Jts/ibgateway").stdout)
     cmd = host.run("pip install ib_insync")
     assert cmd.rc == 0
 
     script = """from ib_insync import *
 ibc = IBC({}, gateway=True, tradingMode='paper', userid='{}', password='{}')
 ibc.start()
-""".format(IB_GATEWAY_VERSION, account, password)
+""".format(ib_gateway_version, account, password)
     cmd = host.run("python -c \"{}\"".format(script))
     assert cmd.rc == 0
 

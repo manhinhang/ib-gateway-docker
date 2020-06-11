@@ -1,5 +1,11 @@
 name: Build test
-on: [ push, pull_request ]
+on: 
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+
 jobs:
   build:
     runs-on: ubuntu-latest
