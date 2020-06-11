@@ -42,11 +42,7 @@ manhinhang/ib-gateway-docker tail -f /dev/null
 
 ## Container usage example
 
-This example will using [ib_insync](https://github.com/erdewit/ib_insync) to demonstrate how to connect `IB Gateway`
-
-### Starting up `IB gateway` though [IBC](https://github.com/IbcAlpha/IBC) and using [ib_insync](https://github.com/erdewit/ib_insync) to connect `IB gateway`
-
-[IBC](https://github.com/IbcAlpha/IBC) is a greate tools for managing `IB Gateway` and [ib_insync](https://github.com/erdewit/ib_insync) is also provided interface to interacting [IBC](https://github.com/IbcAlpha/IBC).
+This example demonstrated how to connect `IB Gateway`
 
 Example Code: [examples/ib_insync](./examples/ib_insync)
 
