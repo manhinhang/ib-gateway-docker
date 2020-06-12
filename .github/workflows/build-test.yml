@@ -4,6 +4,7 @@ on:
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
+      - '.github/**'
   pull_request:
 
 jobs:
