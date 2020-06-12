@@ -13,4 +13,4 @@ echo "Xvfb is ready"
 
 python /root/bootstrap.py
 
-$@
+/bin/bash -c "$@"
