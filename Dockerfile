@@ -40,6 +40,11 @@ WORKDIR /root
 COPY cmd.sh /root/cmd.sh
 RUN chmod +x /root/cmd.sh
 
+# python script for bootstrap
+COPY src/bootstrap.py /root/bootstrap.py
+RUN chmod +x /root/bootstrap.py
+RUN pip install ib_insync
+
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 

@@ -1,6 +1,10 @@
 **/__pycache__/
 **/*.pyc
+**/*.pyo
+**/*.pyd
 .github
 test
 requirements-test.txt
 .gitignore
+Dockerfile
+README.md

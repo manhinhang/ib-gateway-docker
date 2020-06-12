@@ -1,5 +1,11 @@
 name: Build test
-on: [ push, pull_request ]
+on: 
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,6 +24,7 @@ jobs:
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+        TRADE_MODE: paper
     - name: Run examples
       run: |
         cd examples/ib_insync
