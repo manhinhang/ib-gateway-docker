@@ -4,7 +4,7 @@ on:
    push:
      branches:    
       - master
-      - ci_docker_build
+      - develop
      tags:
        - 'v*'
 
