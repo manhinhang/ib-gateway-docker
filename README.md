@@ -22,25 +22,32 @@ This docker image just installed:
 docker pull manhinhang/ib-gateway-docker
 ```
 
-## Build & Run locally
-
-```bash
-docker build -t ib-gateway-docker .
-docker run -d ib-gateway-docker \
---env IB_ACCOUNT= \ #YOUR_USER_ID 
---env IB_PASSWORD= \ #YOUR_PASSWORD  
---env TRADE_MODE= \ #paper or live 
-tail -f /dev/null
-```
-
 ### Create a container from the image and run it
 ```bash
 docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
+--p 4002:4002 \ #brige IB gateway port to your local port 4002
 manhinhang/ib-gateway-docker tail -f /dev/null
 ```
+
+---
+
+## Build & Run locally
+
+```bash
+git clone git@github.com:manhinhang/ib-gateway-docker.git
+cd ib-gateway-docker
+docker build -t ib-gateway-docker .
+docker run -d \
+--env IB_ACCOUNT= \ #YOUR_USER_ID 
+--env IB_PASSWORD= \ #YOUR_PASSWORD  
+--env TRADE_MODE= \ #paper or live 
+ib-gateway-docker \
+tail -f /dev/null
+```
+
 
 ## Container usage example
 
