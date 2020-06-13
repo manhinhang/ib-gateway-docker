@@ -40,7 +40,7 @@ manhinhang/ib-gateway-docker tail -f /dev/null
 git clone git@github.com:manhinhang/ib-gateway-docker.git
 cd ib-gateway-docker
 docker build -t ib-gateway-docker .
-docker run -d ib-gateway-docker \
+docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
