@@ -27,18 +27,18 @@ class IBAccount(object):
     def account(cls):
         if not cls.isEnabledGCPSecret():
             return os.environ['IB_ACCOUNT']
-        return cls.retrieve_secret('IB_ACCOUNT')
+        return cls.retrieve_secret(os.environ['GCP_SECRET_IB_ACCOUNT'])
     
     @classmethod
     def password(cls):
         if not cls.isEnabledGCPSecret():
             return os.environ['IB_PASSWORD']
-        return cls.retrieve_secret('IB_PASSWORD')
+        return cls.retrieve_secret(os.environ['GCP_SECRET_IB_PASSWORD'])
 
     @classmethod
     def trade_mode(cls):
         if not cls.isEnabledGCPSecret():
             return os.environ['TRADE_MODE']
-        return cls.retrieve_secret('IB_TRADE_MODE')
+        return cls.retrieve_secret(os.environ['GCP_SECRET_IB_TRADE_MODE'])
 
     
