@@ -44,6 +44,7 @@ docker run -d ib-gateway-docker \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
+ib-gateway-docker \
 tail -f /dev/null
 ```
 
