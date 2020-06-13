@@ -44,9 +44,11 @@ manhinhang/ib-gateway-docker tail -f /dev/null
 
 ## Container usage example
 
-This example demonstrated how to connect `IB Gateway`
+| Example | Link | Description |
+| - | - | - |
+| ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
+| google cloud secret manager | [examples/google_cloud_secret_manager](./examples/google_cloud_secret_manager) | retreive your interactive brokers account from google cloud secret manager |
 
-Example Code: [examples/ib_insync](./examples/ib_insync)
 
 # Tests
 
