@@ -1,3 +1,5 @@
 pytest
 testinfra
 ib_insync
+google-cloud-secret-manager
+pandas

@@ -14,21 +14,12 @@ This docker image just installed:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.8.2)
 
+- [ib_insync](https://github.com/erdewit/ib_insync) (latest)
+
 ## Pull the Docker image from Docker Hub
 
 ```bash
 docker pull manhinhang/ib-gateway-docker
-```
-
-## Build & Run locally
-
-```bash
-docker build -t ib-gateway-docker .
-docker run -d ib-gateway-docker \
---env IB_ACCOUNT= \ #YOUR_USER_ID 
---env IB_PASSWORD= \ #YOUR_PASSWORD  
---env TRADE_MODE= \ #paper or live 
-tail -f /dev/null
 ```
 
 ### Create a container from the image and run it
@@ -37,14 +28,34 @@ docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
+--p 4002:4002 \ #brige IB gateway port to your local port 4002
 manhinhang/ib-gateway-docker tail -f /dev/null
 ```
 
+---
+
+## Build & Run locally
+
+```bash
+git clone git@github.com:manhinhang/ib-gateway-docker.git
+cd ib-gateway-docker
+docker build -t ib-gateway-docker .
+docker run -d \
+--env IB_ACCOUNT= \ #YOUR_USER_ID 
+--env IB_PASSWORD= \ #YOUR_PASSWORD  
+--env TRADE_MODE= \ #paper or live 
+ib-gateway-docker \
+tail -f /dev/null
+```
+
+
 ## Container usage example
 
-This example demonstrated how to connect `IB Gateway`
+| Example | Link | Description |
+| - | - | - |
+| ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
+| google cloud secret manager | [examples/google_cloud_secret_manager](./examples/google_cloud_secret_manager) | retreive your interactive brokers account from google cloud secret manager |
 
-Example Code: [examples/ib_insync](./examples/ib_insync)
 
 # Tests
 
