@@ -29,7 +29,7 @@ def host(request):
     # at the end of the test suite, destroy the container
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
-def test_ib_connect(host):
+def test_ib_connect_fail(host):
     script = """
 from ib_insync import *
 IB.sleep(60)
