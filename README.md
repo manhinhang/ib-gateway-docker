@@ -14,6 +14,8 @@ This docker image just installed:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.8.2)
 
+- [ib_insync](https://github.com/erdewit/ib_insync) (latest)
+
 ## Pull the Docker image from Docker Hub
 
 ```bash
