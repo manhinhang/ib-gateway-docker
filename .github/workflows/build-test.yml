@@ -26,7 +26,7 @@ jobs:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
         TRADE_MODE: paper
-        
+
     - name: Run ib_insync example
       run: |
         cd examples/ib_insync
@@ -52,10 +52,15 @@ jobs:
       run: |
         docker run \
         --env GCP_SECRET=True \
-        --env GCP_SECRET_IB_ACCOUNT=${{ secrets.GCP_SECRET_IB_ACCOUNT }} \
-        --env GCP_SECRET_IB_PASSWORD=${{ secrets.GCP_SECRET_IB_PASSWORD }} \
-        --env GCP_SECRET_IB_TRADE_MODE=${{ secrets.GCP_SECRET_IB_TRADE_MODE }} \
-        --env GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} \
+        --env GCP_SECRET_IB_ACCOUNT=$GCP_SECRET_IB_ACCOUNT  \
+        --env GCP_SECRET_IB_PASSWORD=$GCP_SECRET_IB_PASSWORD \
+        --env GCP_SECRET_IB_TRADE_MODE=$GCP_SECRET_IB_TRADE_MODE \
+        --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
         -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
         ib-gateway-docker
+      env:
+        GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
+        GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
+        GCP_SECRET_IB_TRADE_MODE: ${{ secrets.GCP_SECRET_IB_TRADE_MODE }}
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
