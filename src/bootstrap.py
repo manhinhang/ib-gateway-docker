@@ -16,7 +16,10 @@ def ping():
             IB.sleep(1)
             ib.connect('localhost', 4001, clientId=1)
         except (ConnectionRefusedError, OSError) as e:
+            if type(e) is TimeoutError:
+                raise e
             logging.warning('Still waiting gateway connection..({})'.format(e))
+    
     ib.disconnect()
 
 if __name__ == "__main__":
