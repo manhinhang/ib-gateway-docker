@@ -4,10 +4,12 @@ from google.cloud import secretmanager
 
 class IBAccount(object):
     # Create the Secret Manager client.
-    __client = secretmanager.SecretManagerServiceClient()
+    __client = None
    
     @classmethod
     def retrieve_secret(cls, secret_id):
+        if not cls.__client:
+            cls.__client = secretmanager.SecretManagerServiceClient()
         gcp_project_id = os.environ['GCP_PROJECT_ID']
         name = cls.__client.secret_version_path(gcp_project_id, secret_id, 'latest')
         response = cls.__client.access_secret_version(name)
