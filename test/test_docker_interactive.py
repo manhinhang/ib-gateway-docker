@@ -26,7 +26,7 @@ def test_ibgw_port(host):
     
     time.sleep(60)
     ib = IB()
-    ib.connect('localhost', 4001, clientId=1)
+    ib.connect('localhost', 4002, clientId=1)
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
         contract, endDateTime='', durationStr='30 D',
