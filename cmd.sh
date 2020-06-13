@@ -13,4 +13,6 @@ echo "Xvfb is ready"
 
 python /root/bootstrap.py
 
+echo "IB gateway is ready."
+
 $@
