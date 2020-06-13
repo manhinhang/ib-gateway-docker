@@ -13,7 +13,7 @@ def test_ibgw_port(host):
     trade_mode = os.environ['TRADE_MODE']
     # build local ./Dockerfile
     subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
-    
+
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
@@ -24,7 +24,7 @@ def test_ibgw_port(host):
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     
-    time.sleep(30)
+    time.sleep(60)
     ib = IB()
     ib.connect('localhost', 4001, clientId=1)
     contract = Forex('EURUSD')
