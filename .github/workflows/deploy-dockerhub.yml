@@ -5,6 +5,7 @@ on:
      branches:    
       - master
       - develop
+      - ci-dockerhub 
      tags:
        - 'v*'
 
@@ -20,3 +21,4 @@ jobs:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
             repository: manhinhang/ib-gateway-docker
+            tags: ci
