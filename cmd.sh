@@ -12,6 +12,8 @@ done
 
 echo "Xvfb is ready"
 
+socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever &
+
 python /root/bootstrap.py
 
 echo "IB gateway is ready."

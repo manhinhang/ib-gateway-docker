@@ -3,7 +3,7 @@ FROM python:3.7-slim
 # install dependencies
 RUN  apt-get update \
   && apt-get upgrade -y \
-  && apt-get install -y wget unzip xvfb libxtst6 libxrender1 python3.7-dev build-essential net-tools x11-utils
+  && apt-get install -y wget unzip xvfb libxtst6 libxrender1 python3.7-dev build-essential net-tools x11-utils socat
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -51,5 +51,9 @@ RUN pip install ib_insync google-cloud-secret-manager
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 ENV GCP_SECRET=False
+
+ENV IBGW_PORT 4002
+
+EXPOSE $IBGW_PORT
 
 ENTRYPOINT [ "sh", "/root/cmd.sh" ] 
