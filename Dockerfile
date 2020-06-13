@@ -40,12 +40,16 @@ WORKDIR /root
 COPY cmd.sh /root/cmd.sh
 RUN chmod +x /root/cmd.sh
 
-# python script for bootstrap
+# python script for /root directory
 COPY src/bootstrap.py /root/bootstrap.py
 RUN chmod +x /root/bootstrap.py
-RUN pip install ib_insync
+COPY src/ib_account.py /root/ib_account.py
+RUN chmod +x /root/ib_account.py
+
+RUN pip install ib_insync google-cloud-secret-manager
 
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
+ENV GCP_SECRET=False
 
 ENTRYPOINT [ "sh", "/root/cmd.sh" ] 

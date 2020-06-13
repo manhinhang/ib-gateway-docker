@@ -1,6 +1,7 @@
 from ib_insync import IBC, IB
 import os
 import logging
+from ib_account import IBAccount
 import signal
 
 def ping():
@@ -24,9 +25,9 @@ def ping():
 
 if __name__ == "__main__":
     ib_gateway_version = int(os.listdir("/root/Jts/ibgateway")[0])
-    account = os.environ['IB_ACCOUNT']
-    password = os.environ['IB_PASSWORD']
-    trade_mode = os.environ['TRADE_MODE']
+    account = IBAccount.account()
+    password = IBAccount.password()
+    trade_mode = IBAccount.trade_mode()
     ibc = IBC(ib_gateway_version, gateway=True, tradingMode=trade_mode, userid=account, password=password)
     ibc.start()
     ping()

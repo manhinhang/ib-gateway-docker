@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "Starting Xvfb..."
 /usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR &
@@ -12,5 +13,7 @@ done
 echo "Xvfb is ready"
 
 python /root/bootstrap.py
+
+echo "IB gateway is ready."
 
 $@
