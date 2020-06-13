@@ -6,7 +6,7 @@ import signal
 def ping():
     def timeout_handler(signum, frame):
         signal.alarm(0)
-        raise TimeoutError('IB gatewau timed out')
+        raise TimeoutError('IB gateway timed out, please check your account & password')
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(120)
 
