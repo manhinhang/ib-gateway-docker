@@ -22,9 +22,16 @@ def test_ibgw_port(host):
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     
-    time.sleep(60)
     ib = IB()
-    ib.connect('localhost', 4002, clientId=1)
+    wait = 60
+    while wait > 0:
+        try:
+            IB.sleep(1)
+            ib.connect('localhost', 4002, clientId=1)
+        except (ConnectionRefusedError, OSError):
+            pass
+        wait -= 1
+    
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
         contract, endDateTime='', durationStr='30 D',
