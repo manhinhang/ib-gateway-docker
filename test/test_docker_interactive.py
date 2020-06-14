@@ -4,15 +4,13 @@ import subprocess
 import time
 from ib_insync import IB, util, Forex
 
+IMAGE_NAME = os.environ['IMAGE_NAME']
 
-IMAGE_NAME='ib-gateway-docker'
 @pytest.mark.dependency(depends=['test_ibgateway_version'])
 def test_ibgw_port(host):
     account = os.environ['IB_ACCOUNT']
     password = os.environ['IB_PASSWORD']
     trade_mode = os.environ['TRADE_MODE']
-    # build local ./Dockerfile
-    subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
 
     # run a container
     docker_id = subprocess.check_output(
