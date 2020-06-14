@@ -60,7 +60,7 @@ jobs:
         --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
         -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
-        $IMAAGE_NAME
+        $IMAGE_NAME
       env:
         GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
         GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
