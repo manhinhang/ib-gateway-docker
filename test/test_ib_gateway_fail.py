@@ -30,15 +30,9 @@ def host(request):
 def test_ib_connect_fail(host):
     script = """
 from ib_insync import *
+IB.sleep(60)
 ib = IB()
-wait = 60
-while wait > 0:
-    try:
-        IB.sleep(1)
-        ib.connect('localhost', 4001, clientId=1)
-    except (ConnectionRefusedError, OSError):
-        pass
-    wait -= 1
+ib.connect('localhost', 4001, clientId=1)
 ib.disconnect()
 """
     cmd = host.run("python -c \"{}\"".format(script))
