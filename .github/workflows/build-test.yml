@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      IMAAGE_NAME: ib-gateway-docker
+      IMAGE_NAME: ib-gateway-docker
     steps:
     - uses: actions/checkout@v2
     - name: Setup python
@@ -20,6 +20,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+    - name: Build Docker image
+      run: docker build -t $IMAGE_NAME .
     - name: Smoke tests container image
       run: pytest -x
       env:
@@ -36,7 +38,7 @@ jobs:
         -e IB_ACCOUNT=$IB_ACCOUNT \
         -e IB_PASSWORD=$IB_PASSWORD \
         -e TRADE_MODE=paper \
-        $IMAAGE_NAME sh /home/example.sh
+        $IMAGE_NAME sh /home/example.sh
       env:
         TRADE_MODE: paper
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}

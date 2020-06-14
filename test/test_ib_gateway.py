@@ -4,7 +4,7 @@ import testinfra
 import os
 import time
 
-IMAGE_NAME='ib-gateway-docker'
+IMAGE_NAME = os.environ['IMAGE_NAME']
 
 # scope='session' uses the same container for all the tests;
 # scope='function' uses a new container per test function.
@@ -14,8 +14,6 @@ def host(request):
     password = os.environ['IB_PASSWORD']
     trade_mode = os.environ['TRADE_MODE']
 
-    # build local ./Dockerfile
-    subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
