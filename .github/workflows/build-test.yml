@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAAGE_NAME: ib-gateway-docker
     steps:
     - uses: actions/checkout@v2
     - name: Setup python
@@ -35,7 +37,7 @@ jobs:
         -e IB_ACCOUNT=$IB_ACCOUNT \
         -e IB_PASSWORD=$IB_PASSWORD \
         -e TRADE_MODE=paper \
-        ib-gateway-docker sh /home/example.sh
+        $IMAAGE_NAME sh /home/example.sh
       env:
         TRADE_MODE: paper
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
@@ -57,7 +59,7 @@ jobs:
         --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
         -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
-        ib-gateway-docker
+        $IMAAGE_NAME
       env:
         GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
         GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
