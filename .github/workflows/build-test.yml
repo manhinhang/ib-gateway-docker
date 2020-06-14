@@ -21,8 +21,7 @@ jobs:
         pip install pytest
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
     - name: Smoke tests container image
-      run: |
-        pytest
+      run: pytest -x
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
