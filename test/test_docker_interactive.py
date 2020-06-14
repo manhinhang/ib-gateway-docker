@@ -3,10 +3,10 @@ import os
 import subprocess
 import time
 from ib_insync import IB, util, Forex
+import asyncio
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
-@pytest.mark.dependency(depends=['test_ibgateway_version'])
 def test_ibgw_port(host):
     account = os.environ['IB_ACCOUNT']
     password = os.environ['IB_PASSWORD']
@@ -23,14 +23,16 @@ def test_ibgw_port(host):
         "tail", "-f", "/dev/null"]).decode().strip()
     
     ib = IB()
-    wait = 60
-    while wait > 0:
+    wait = 120
+    while not ib.isConnected():
         try:
             IB.sleep(1)
-            ib.connect('localhost', 4002, clientId=1)
-        except (ConnectionRefusedError, OSError):
+            ib.connect('localhost', 4002, clientId=999)
+        except (ConnectionRefusedError, OSError, asyncio.exceptions.TimeoutError):
             pass
         wait -= 1
+        if wait <= 0:
+            break
     
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(

@@ -2,7 +2,6 @@ import pytest
 import subprocess
 import testinfra
 import os
-import time
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
@@ -33,15 +32,19 @@ def test_ibgateway_version(host):
 def test_ib_connect(host):
     script = """
 from ib_insync import *
+from concurrent.futures import TimeoutError
+
 ib = IB()
 wait = 60
-while wait > 0:
+while not ib.isConnected():
     try:
         IB.sleep(1)
-        ib.connect('localhost', 4001, clientId=1)
-    except (ConnectionRefusedError, OSError):
+        ib.connect('localhost', 4002, clientId=999)
+    except (ConnectionRefusedError, OSError, TimeoutError):
         pass
     wait -= 1
+    if wait <= 0:
+        break
 ib.disconnect()
 """
     cmd = host.run("python -c \"{}\"".format(script))
