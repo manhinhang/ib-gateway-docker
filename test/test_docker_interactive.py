@@ -7,7 +7,7 @@ import asyncio
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def ib_docker():
     account = os.environ['IB_ACCOUNT']
     password = os.environ['IB_PASSWORD']
