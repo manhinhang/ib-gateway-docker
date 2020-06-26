@@ -27,7 +27,7 @@ cleanup() {
     echo "Container stopped, performing cleanup..."
 }
 
-#Trap SIGTERM
-trap 'cleanup' SIGTERM
+#Trap TERM
+trap 'cleanup' INT TERM
 
 $@
