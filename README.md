@@ -76,6 +76,13 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
 
+# Other enviornment variable
+
+| Variable Name | Description | Default value |
+| - | - | - |
+| IB_GATEWAY_PING_CLIENT_ID | ib gateway client id for pinging client status | 1 |
+
+
 # Disclaimer
 
 This project is not affiliated with [Interactive Brokers Group, Inc.'s](https://www.interactivebrokers.com).

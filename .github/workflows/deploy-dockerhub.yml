@@ -2,9 +2,11 @@ name: Deploy to docker hub
 
 on:
    push:
-     branches:    
-      - master
-      - develop
+     branches:
+        - '*' 
+        - '!feature/**' 
+        - '!hotfix/**'
+        - '!bugfix/**' 
      tags:
        - 'v*'
 
@@ -20,3 +22,5 @@ jobs:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
             repository: manhinhang/ib-gateway-docker
+            tag_with_ref: true
+ 

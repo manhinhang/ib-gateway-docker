@@ -2,9 +2,8 @@ import pytest
 import subprocess
 import testinfra
 import os
-import time
 
-IMAGE_NAME='ib-gateway-docker'
+IMAGE_NAME = os.environ['IMAGE_NAME']
 
 # scope='session' uses the same container for all the tests;
 # scope='function' uses a new container per test function.
@@ -14,8 +13,6 @@ def host(request):
     password = os.environ['IB_PASSWORD']
     trade_mode = os.environ['TRADE_MODE']
 
-    # build local ./Dockerfile
-    subprocess.check_call(['docker', 'build', '-t', IMAGE_NAME, '.'])
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
@@ -35,9 +32,19 @@ def test_ibgateway_version(host):
 def test_ib_connect(host):
     script = """
 from ib_insync import *
-IB.sleep(60)
+from concurrent.futures import TimeoutError
+
 ib = IB()
-ib.connect('localhost', 4001, clientId=1)
+wait = 60
+while not ib.isConnected():
+    try:
+        IB.sleep(1)
+        ib.connect('localhost', 4002, clientId=999)
+    except (ConnectionRefusedError, OSError, TimeoutError):
+        pass
+    wait -= 1
+    if wait <= 0:
+        break
 ib.disconnect()
 """
     cmd = host.run("python -c \"{}\"".format(script))
