@@ -33,7 +33,7 @@ def test_ibgw_interactive(ib_docker):
         try:
             IB.sleep(1)
             ib.connect('localhost', 4002, clientId=999)
-        except (ConnectionRefusedError, OSError, asyncio.exceptions.TimeoutError):
+        except:
             pass
         wait -= 1
         if wait <= 0:
@@ -61,7 +61,7 @@ def test_ibgw_restart(ib_docker):
         try:
             IB.sleep(1)
             ib.connect('localhost', 4002, clientId=999)
-        except (ConnectionRefusedError, OSError, asyncio.exceptions.TimeoutError):
+        except:
             pass
         wait -= 1
         if wait <= 0:
