@@ -11,7 +11,8 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     ibcPath=/opt/ibc \
     javaPath=/opt/i4j_jres \
     twsPath=/root/Jts \
-    twsSettingsPath=/root/Jts
+    twsSettingsPath=/root/Jts \
+    IB_GATEWAY_PING_CLIENT_ID=1
 
 # make dirs
 RUN mkdir -p /tmp && mkdir -p ${ibcPath} && mkdir -p ${twsPath}
