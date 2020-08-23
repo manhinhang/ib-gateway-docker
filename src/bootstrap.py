@@ -13,13 +13,16 @@ def ping():
 
     ib = IB()
     pingClientId=int(os.environ['IB_GATEWAY_PING_CLIENT_ID'])
+    maxRetryCount = int(os.environ['ibAccMaxRetryCount'])
+    retryCount = 0
     while not ib.isConnected():
         try:
             IB.sleep(1)
             ib.connect('localhost', 4001, clientId=pingClientId)
         except (ConnectionRefusedError, OSError) as e:
-            if type(e) is TimeoutError:
-                raise e
+            retryCount += 1
+            if retryCount >= 30:
+                raise ValueError("Invalid ib account") 
             logging.warning('Still waiting gateway connection..({})'.format(e))
     
     ib.disconnect()

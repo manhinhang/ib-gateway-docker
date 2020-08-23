@@ -36,4 +36,4 @@ ib.connect('localhost', 4001, clientId=1)
 ib.disconnect()
 """
     cmd = host.run("python -c \"{}\"".format(script))
-    assert cmd.rc == 1
+    assert cmd.rc != 0
