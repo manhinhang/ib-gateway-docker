@@ -76,7 +76,7 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
 
-# Other enviornment varible
+# Other enviornment variable
 
 | Variable Name | Description | Default value |
 | - | - | - |
