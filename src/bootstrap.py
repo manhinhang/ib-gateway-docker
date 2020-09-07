@@ -14,8 +14,7 @@ if __name__ == "__main__":
     ib.connectedEvent += onConnected
     def onConnected():
         print(ib.accountValues())
-    IB_PORT = int(os.environ['IBGW_PORT'])
-    watchdog = Watchdog(ibc, ib, port=IB_PORT)
+    watchdog = Watchdog(ibc, ib, port=4001)
     watchdog.start()
     ib.run()
     logging.info('IB gateway is ready.')
