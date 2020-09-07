@@ -11,9 +11,9 @@ if __name__ == "__main__":
     trade_mode = IBAccount.trade_mode()
     ibc = IBC(ib_gateway_version, gateway=True, tradingMode=trade_mode, userid=account, password=password)
     ib = IB()
-    ib.connectedEvent += onConnected
     def onConnected():
         print(ib.accountValues())
+    ib.connectedEvent += onConnected
     watchdog = Watchdog(ibc, ib, port=4001)
     watchdog.start()
     ib.run()
