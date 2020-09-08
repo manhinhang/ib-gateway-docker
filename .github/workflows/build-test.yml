@@ -39,8 +39,9 @@ jobs:
         -p 4001:4002 \
         -d \
         $IMAGE_NAME tail -f /dev/null;
-        pip install ib_insync pandas
-        python examples/ib_insync/scripts/connect_gateway.py
+        sleep 30;
+        pip install ib_insync pandas;
+        python examples/ib_insync/scripts/connect_gateway.py;
         docker stop $(docker ps -a -q);
         docker rm $(docker ps -a -q)
       env:
