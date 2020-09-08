@@ -64,7 +64,10 @@ jobs:
         --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
         -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
-        $IMAGE_NAME
+        -d \
+        $IMAGE_NAME;
+        sleep 30
+        if [ -z  "$(docker ps -a -q)" ] then; exit 1; fi
       env:
         GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
         GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
