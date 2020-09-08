@@ -19,6 +19,7 @@ docker run --rm \
 -e IB_PASSWORD=$IB_PASSWORD \
 -e TRADE_MODE=$TRADE_MODE \
 -p 4001:4002 \
+-d \
 manhinhang/ib-gateway-docker:latest tail -f /dev/null
 
 pip install ib_insync pandas
