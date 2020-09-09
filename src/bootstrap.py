@@ -16,6 +16,8 @@ if __name__ == "__main__":
     ib = IB()
     def onConnected():
         logging.info('IB gateway connected')
+        logging.info(ib.accountValues())
+            
     def onDisconnected():
         logging.info('IB gateway disconnected')
     ib.connectedEvent += onConnected
