@@ -48,7 +48,7 @@ jobs:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
         
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+    - uses: 'google-github-actions/setup-gcloud@v0'
       with:
         version: '290.0.1'
         project_id: ${{ secrets.GCP_PROJECT_ID }}
