@@ -12,7 +12,7 @@ This docker image just installed:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (latest)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.8.2)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.13.0)
 
 - [ib_insync](https://github.com/erdewit/ib_insync) (latest)
 
