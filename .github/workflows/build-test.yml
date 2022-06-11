@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
+    timeout-minutes: 20
     env:
       IMAGE_NAME: ib-gateway-docker
     steps:
@@ -32,20 +33,23 @@ jobs:
 
     - name: Run ib_insync example
       run: |
-        cd examples/ib_insync
-        docker run -v $(pwd)/scripts/bootstrap.py:/home/bootstrap.py \
-        -v $(pwd)/scripts/connect_gateway.py:/home/connect_gateway.py \
-        -v $(pwd)/example.sh:/home/example.sh \
+        docker run --rm \
         -e IB_ACCOUNT=$IB_ACCOUNT \
         -e IB_PASSWORD=$IB_PASSWORD \
         -e TRADE_MODE=paper \
-        $IMAGE_NAME sh /home/example.sh
+        -p 4001:4002 \
+        -d \
+        $IMAGE_NAME tail -f /dev/null;
+        sleep 30;
+        pip install ib_insync pandas;
+        python examples/ib_insync/scripts/connect_gateway.py;
+        docker stop $(docker ps -a -q)
       env:
         TRADE_MODE: paper
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
         
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+    - uses: 'google-github-actions/setup-gcloud@v0'
       with:
         version: '290.0.1'
         project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -61,7 +65,10 @@ jobs:
         --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
         -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
-        $IMAGE_NAME
+        -d \
+        $IMAGE_NAME;
+        sleep 30;
+        if [ -z  "$(docker ps -a -q)" ]; then exit 1; fi
       env:
         GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
         GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}

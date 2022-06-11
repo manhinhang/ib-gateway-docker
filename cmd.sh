@@ -12,8 +12,10 @@ while ! xdpyinfo -display "$DISPLAY"; do
 done
 
 echo "Xvfb is ready"
+echo "Setup port forwarding..."
 
 socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever &
+echo "*****************************"
 
 python /root/bootstrap.py
 
