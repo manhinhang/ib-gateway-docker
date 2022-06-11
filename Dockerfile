@@ -3,7 +3,19 @@ FROM python:3.7-slim
 # install dependencies
 RUN  apt-get update \
   && apt-get upgrade -y \
-  && apt-get install -y wget unzip xvfb libxtst6 libxrender1 python3.7-dev build-essential net-tools x11-utils socat
+  && apt-get install -y wget \
+  unzip \
+  xvfb \
+  libxtst6 \
+  libxrender1 \
+  build-essential \
+  net-tools \
+  x11-utils \
+  socat \
+  expect \
+  procps \
+  xterm
+RUN apt install -y openjdk-17-jre
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -23,12 +35,14 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.8.2/IBCLinux-3.8.2.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.13.0/IBCLinux-3.13.0.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 
 # install TWS, write output to file so that we can parse the TWS version number later
-RUN yes n | /tmp/ibgw.sh > ${TWS_INSTALL_LOG}
+COPY install_ibgw.exp /tmp/install_ibgw.exp
+RUN chmod +x /tmp/install_ibgw.exp
+RUN /tmp/install_ibgw.exp
 
 # remove downloaded files
 RUN rm /tmp/ibgw.sh /tmp/IBC.zip
