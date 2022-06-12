@@ -35,10 +35,11 @@ if __name__ == "__main__":
     ib.connectedEvent += onConnected
     ib.disconnectedEvent += onDisconnected
     watchdog = Watchdog(ibc, ib, port=4001, 
-        connectTimeout=30, 
-        appStartupTime=30, 
-        appTimeout=30,
-        retryDelay=30)
+        connectTimeout=int(os.environ['IBGW_WATCHDOG_CONNECT_TIMEOUT']), 
+        appStartupTime=int(os.environ['IBGW_WATCHDOG_APP_STARTUP_TIME']), 
+        appTimeout=int(os.environ['IBGW_WATCHDOG_APP_TIMEOUT']),
+        retryDelay=int(os.environ['IBGW_WATCHDOG_RETRY_DELAY']),
+        probeTimeout=int(os.environ['IBGW_WATCHDOG_PROBE_TIMEOUT']))
     def onWatchDogStarting(_):
         logging.info('WatchDog Starting...')
     def onWatchDogStarted(_):
