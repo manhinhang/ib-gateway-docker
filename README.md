@@ -81,6 +81,11 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | Variable Name | Description | Default value |
 | - | - | - |
 | IB_GATEWAY_PING_CLIENT_ID | ib gateway client id for pinging client status | 1 |
+| IBGW_WATCHDOG_CONNECT_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.connectTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.connectTimeout) | 30 |
+| IBGW_WATCHDOG_APP_STARTUP_TIME | [ib_insync.ibcontroller.Watchdog.appStartupTime](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appStartupTime) | 30 |
+| IBGW_WATCHDOG_APP_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.appTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appTimeout) | 30 |
+| IBGW_WATCHDOG_RETRY_DELAY | Ref to [ib_insync.ibcontroller.Watchdog.retryDelay](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.retryDelay) | 2 |
+| IBGW_WATCHDOG_PROBE_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.probeTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.probeTimeout) | 4 |
 
 
 # Disclaimer
