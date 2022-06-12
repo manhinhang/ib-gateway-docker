@@ -14,7 +14,7 @@ This docker image just installed:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.13.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (latest)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.70)
 
 ## Pull the Docker image from Docker Hub
 
@@ -39,7 +39,7 @@ manhinhang/ib-gateway-docker tail -f /dev/null
 ```bash
 git clone git@github.com:manhinhang/ib-gateway-docker.git
 cd ib-gateway-docker
-docker build -t ib-gateway-docker .
+docker build --no-cache -t ib-gateway-docker .
 docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  

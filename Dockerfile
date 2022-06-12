@@ -16,6 +16,7 @@ RUN  apt-get update \
   procps \
   xterm
 RUN apt install -y openjdk-17-jre
+RUN pip install ib_insync google-cloud-secret-manager
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -61,8 +62,6 @@ COPY src/bootstrap.py /root/bootstrap.py
 RUN chmod +x /root/bootstrap.py
 COPY src/ib_account.py /root/ib_account.py
 RUN chmod +x /root/ib_account.py
-
-RUN pip install ib_insync google-cloud-secret-manager
 
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
