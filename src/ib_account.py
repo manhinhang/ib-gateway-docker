@@ -12,7 +12,7 @@ class IBAccount(object):
             cls.__client = secretmanager.SecretManagerServiceClient()
         gcp_project_id = os.environ['GCP_PROJECT_ID']
         name = cls.__client.secret_version_path(gcp_project_id, secret_id, 'latest')
-        response = cls.__client.access_secret_version(name)
+        response = cls.__client.access_secret_version(name=name)
         payload = response.payload.data.decode('UTF-8')
         return payload
 

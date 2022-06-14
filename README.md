@@ -16,6 +16,8 @@ This docker image just installed:
 
 - [ib_insync](https://github.com/erdewit/ib_insync) (0.9.70)
 
+- [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
+
 ## Pull the Docker image from Docker Hub
 
 ```bash
