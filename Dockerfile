@@ -16,6 +16,7 @@ RUN  apt-get update \
   procps \
   xterm
 RUN apt install -y openjdk-17-jre
+RUN pip install ib_insync==0.9.70 google-cloud-secret-manager==2.11.1
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -62,13 +63,16 @@ RUN chmod +x /root/bootstrap.py
 COPY src/ib_account.py /root/ib_account.py
 RUN chmod +x /root/ib_account.py
 
-RUN pip install ib_insync google-cloud-secret-manager
-
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 ENV GCP_SECRET=False
 
 ENV IBGW_PORT 4002
+ENV IBGW_WATCHDOG_CONNECT_TIMEOUT 30
+ENV IBGW_WATCHDOG_APP_STARTUP_TIME 30
+ENV IBGW_WATCHDOG_APP_TIMEOUT 30
+ENV IBGW_WATCHDOG_RETRY_DELAY 2
+ENV IBGW_WATCHDOG_PROBE_TIMEOUT 4
 
 EXPOSE $IBGW_PORT
 
