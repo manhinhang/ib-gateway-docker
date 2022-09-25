@@ -12,9 +12,9 @@ This docker image just installed:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.13.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.14.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.70)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 
@@ -78,7 +78,7 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
 
-# Other enviornment variable
+# Other environment variable
 
 | Variable Name | Description | Default value |
 | - | - | - |

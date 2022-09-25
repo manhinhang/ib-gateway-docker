@@ -1,5 +1,8 @@
 FROM python:3.7-slim
 
+ENV IBC_VERSION=3.14.0
+ENV IB_INSYNC_VERSION=0.9.71
+
 # install dependencies
 RUN  apt-get update \
   && apt-get upgrade -y \
@@ -14,9 +17,10 @@ RUN  apt-get update \
   socat \
   expect \
   procps \
-  xterm
+  xterm \
+  x11vnc
 RUN apt install -y openjdk-17-jre
-RUN pip install ib_insync==0.9.71 google-cloud-secret-manager==2.11.1
+RUN pip install ib_insync==${IB_INSYNC_VERSION} google-cloud-secret-manager==2.11.1
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -36,7 +40,7 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.13.0/IBCLinux-3.13.0.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/${IBC_VERSION}/IBCLinux-${IBC_VERSION}.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 
@@ -58,10 +62,8 @@ COPY cmd.sh /root/cmd.sh
 RUN chmod +x /root/cmd.sh
 
 # python script for /root directory
-COPY src/bootstrap.py /root/bootstrap.py
-RUN chmod +x /root/bootstrap.py
-COPY src/ib_account.py /root/ib_account.py
-RUN chmod +x /root/ib_account.py
+COPY src/*.py /root/
+RUN chmod +x /root/*.py
 
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0

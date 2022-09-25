@@ -1,0 +1,28 @@
+# IB Gateway stack
+version: '3.7'
+
+services:
+  tws:
+    image: rylorin/ib-gateway-docker:0.2
+    environment:
+      IB_ACCOUNT: ${TWS_USERID}
+      IB_PASSWORD: ${TWS_PASSWORD}
+      TRADE_MODE: ${TRADING_MODE:-paper}
+      VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
+      TZ: UTC
+    networks:
+      - default
+    ports:
+      - "4002:4002"
+      - "5900:5009"
+    deploy:
+      placement:
+        constraints:
+          - node.platform.os == linux
+          - node.role == manager
+      replicas: 1
+
+networks:
+  default:
+  system_dmz_network:
+    external: true
