@@ -1,16 +1,15 @@
-# IB Gateway docker
+# Interactive Brokers Gateway (IBG) Docker container for Guerrilla Trading Platform (GTP)
 
 ![Build test](https://github.com/rylorin/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)
 [![Docker Pulls](https://img.shields.io/docker/pulls/rylorin/ib-gateway-docker)](https://hub.docker.com/r/rylorin/ib-gateway-docker)
 [![GitHub](https://img.shields.io/github/license/rylorin/ib-gateway-docker)](https://github.com/rylorin/ib-gateway-docker/blob/develop/LICENSE)
 
-Interactive Brokers gateway (IBG) docker container for Guerrilla Trading Platform (GTP).
-
 This container is based on [work from manhinhang](https://github.com/manhinhang/ib-gateway-docker) with the following changes:
-- VNC server added (can be activated upon user's choice)
-- Health-check based on Docker's native feature added
+- VNC server added (can be activated upon user's choice). Because I want to be able to look at what is going on the gateway.
+- Health-check based on Docker's native feature added. Because the container must be restarted if needed.
 
 More information available on [Github repository](https://github.com/rylorin/ib-gateway-docker).
+
 This docker image contains:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
@@ -42,9 +41,9 @@ rylorin/ib-gateway-docker tail -f /dev/null
 ## Build & Run locally
 
 ```bash
-git clone git@github.com:rylorin/ib-gateway-docker.git
+git clone https://github.com/rylorin/ib-gateway-docker.git
 cd ib-gateway-docker
-docker build --no-cache -t ib-gateway-docker .
+docker build -t ib-gateway-docker .
 docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
@@ -85,13 +84,13 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 
 | Variable Name | Description | Default value |
 | - | - | - |
-| IB_GATEWAY_PING_CLIENT_ID | ib gateway client id for pinging client status | 1 |
+| IB_GATEWAY_PING_CLIENT_ID | ib gateway client id for pinging client status | Random |
 | IBGW_WATCHDOG_CONNECT_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.connectTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.connectTimeout) | 30 |
 | IBGW_WATCHDOG_APP_STARTUP_TIME | [ib_insync.ibcontroller.Watchdog.appStartupTime](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appStartupTime) | 30 |
 | IBGW_WATCHDOG_APP_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.appTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appTimeout) | 30 |
 | IBGW_WATCHDOG_RETRY_DELAY | Ref to [ib_insync.ibcontroller.Watchdog.retryDelay](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.retryDelay) | 2 |
 | IBGW_WATCHDOG_PROBE_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.probeTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.probeTimeout) | 4 |
-| VNC_SERVER_PASSWORD | Define VNC server password. If no password provided then server won't start | None |
+| VNC_SERVER_PASSWORD | VNC server password. If no password provided then VNC server won't start | None |
 
 
 # Disclaimer

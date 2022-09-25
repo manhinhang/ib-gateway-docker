@@ -1,12 +1,14 @@
 FROM python:3.7-slim
 
+ENV IBG_VERSION=stable
 ENV IBC_VERSION=3.14.0
 ENV IB_INSYNC_VERSION=0.9.71
 
 # install dependencies
 RUN  apt-get update \
   && apt-get upgrade -y \
-  && apt-get install -y wget \
+  && apt-get install -y \
+  wget \
   unzip \
   xvfb \
   libxtst6 \
@@ -20,6 +22,7 @@ RUN  apt-get update \
   xterm \
   x11vnc
 RUN apt install -y openjdk-17-jre
+RUN python -m pip install --upgrade pip
 RUN pip install ib_insync==${IB_INSYNC_VERSION} google-cloud-secret-manager==2.11.1
 
 # set environment variables
@@ -36,7 +39,7 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
 RUN mkdir -p /tmp && mkdir -p ${ibcPath} && mkdir -p ${twsPath}
 
 # download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/ibgateway-stable-standalone-linux-x64.sh
+RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${IBG_VERSION}-standalone/ibgateway-${IBG_VERSION}-standalone-linux-x64.sh
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
@@ -78,7 +81,7 @@ ENV IBGW_WATCHDOG_PROBE_TIMEOUT 4
 
 EXPOSE $IBGW_PORT
 
-HEALTHCHECK --interval=1m --timeout=30s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=1m --timeout=30s --start-period=10s --retries=3 \
   CMD python healthcheck.py || exit 1
 
 ENTRYPOINT [ "sh", "/root/cmd.sh" ] 
