@@ -6,9 +6,7 @@
 
 lightweight interactive brokers gateway docker
 
-It's just pure `IB Gateway` and don't include any VNC service (for security reason, I don't like expose extra port)
-
-This docker image just installed:
+This docker image contains:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
 
@@ -17,6 +15,8 @@ This docker image just installed:
 - [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
+
+- VNC service can be activated upon user's choice. You don't need to expose extra port if you don't want
 
 ## Pull the Docker image from Docker Hub
 
@@ -88,6 +88,7 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IBGW_WATCHDOG_APP_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.appTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appTimeout) | 30 |
 | IBGW_WATCHDOG_RETRY_DELAY | Ref to [ib_insync.ibcontroller.Watchdog.retryDelay](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.retryDelay) | 2 |
 | IBGW_WATCHDOG_PROBE_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.probeTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.probeTimeout) | 4 |
+| VNC_SERVER_PASSWORD | Define VNC server password. If no password provided then server won't start | None |
 
 
 # Disclaimer
