@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -27,3 +27,4 @@ jobs:
             "GIT_AUTH_TOKEN=${{ secrets.DOCKER_TOKEN }}" 
           push: true
           tags: rylorin/ib-gateway-docker:latest
+          context: .
