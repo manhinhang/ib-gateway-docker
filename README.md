@@ -1,6 +1,6 @@
 # Interactive Brokers Gateway (IBG) Docker container for Guerrilla Trading Platform (GTP)
 
-[![Build test](https://github.com/rylorin/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)](https://github.com/rylorin/ib-gateway-docker/workflows/Build%20test/)
+[![Build test](https://github.com/rylorin/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)](https://github.com/rylorin/ib-gateway-docker/actions/workflows/build-test.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/rylorin/ib-gateway-docker)](https://hub.docker.com/r/rylorin/ib-gateway-docker)
 [![GitHub](https://img.shields.io/github/license/rylorin/ib-gateway-docker)](https://github.com/rylorin/ib-gateway-docker/blob/develop/LICENSE)
 
