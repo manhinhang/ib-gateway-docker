@@ -3,13 +3,13 @@ version: '3.7'
 
 services:
   tws:
-    image: rylorin/ib-gateway-docker:0.6
+    image: rylorin/ib-gateway-docker:0.7
     environment:
       IB_ACCOUNT: ${TWS_USERID}
       IB_PASSWORD: ${TWS_PASSWORD}
       TRADE_MODE: ${TRADING_MODE:-paper}
       VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
-      TZ: UTC
+#      TZ: UTC
     networks:
       - default
     ports:
