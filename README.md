@@ -1,11 +1,16 @@
 # IB Gateway docker
 
-![Build test](https://github.com/manhinhang/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)
-[![Docker Pulls](https://img.shields.io/docker/pulls/manhinhang/ib-gateway-docker)](https://hub.docker.com/r/manhinhang/ib-gateway-docker)
-[![GitHub](https://img.shields.io/github/license/manhinhang/ib-gateway-docker)](https://github.com/manhinhang/ib-gateway-docker/blob/develop/LICENSE)
+![Build test](https://github.com/rylorin/ib-gateway-docker/workflows/Build%20test/badge.svg?branch=master)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rylorin/ib-gateway-docker)](https://hub.docker.com/r/rylorin/ib-gateway-docker)
+[![GitHub](https://img.shields.io/github/license/rylorin/ib-gateway-docker)](https://github.com/rylorin/ib-gateway-docker/blob/develop/LICENSE)
 
-lightweight interactive brokers gateway docker
+Interactive Brokers gateway (IBG) docker container for Guerrilla Trading Platform (GTP).
 
+This container is based on [work from manhinhang](https://github.com/manhinhang/ib-gateway-docker) with the following changes:
+- VNC server added (can be activated upon user's choice)
+- Health-check based on Docker's native feature added
+
+More information available on [Github repository](https://github.com/rylorin/ib-gateway-docker).
 This docker image contains:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
@@ -16,12 +21,10 @@ This docker image contains:
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 
-- VNC service can be activated upon user's choice. You don't need to expose extra port if you don't want
-
 ## Pull the Docker image from Docker Hub
 
 ```bash
-docker pull manhinhang/ib-gateway-docker
+docker pull rylorin/ib-gateway-docker
 ```
 
 ### Create a container from the image and run it
@@ -31,7 +34,7 @@ docker run -d \
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
 --p 4002:4002 \ #brige IB gateway port to your local port 4002
-manhinhang/ib-gateway-docker tail -f /dev/null
+rylorin/ib-gateway-docker tail -f /dev/null
 ```
 
 ---
@@ -39,7 +42,7 @@ manhinhang/ib-gateway-docker tail -f /dev/null
 ## Build & Run locally
 
 ```bash
-git clone git@github.com:manhinhang/ib-gateway-docker.git
+git clone git@github.com:rylorin/ib-gateway-docker.git
 cd ib-gateway-docker
 docker build --no-cache -t ib-gateway-docker .
 docker run -d \
@@ -96,4 +99,3 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 This project is not affiliated with [Interactive Brokers Group, Inc.'s](https://www.interactivebrokers.com).
 
 Good luck and enjoy.
-
