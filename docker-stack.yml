@@ -3,7 +3,7 @@ version: '3.7'
 
 services:
   tws:
-    image: rylorin/ib-gateway-docker:0.2
+    image: rylorin/ib-gateway-docker:0.6
     environment:
       IB_ACCOUNT: ${TWS_USERID}
       IB_PASSWORD: ${TWS_PASSWORD}
@@ -14,7 +14,7 @@ services:
       - default
     ports:
       - "4002:4002"
-      - "5900:5009"
+      - "5900:5900"
     deploy:
       placement:
         constraints:

@@ -26,12 +26,14 @@ if __name__ == "__main__":
         password=password, 
         twsPath=twsPath)
     ib = IB()
+
     def onConnected():
         logging.info('IB gateway connected')
         logging.info(ib.accountValues())
             
     def onDisconnected():
         logging.info('IB gateway disconnected')
+
     ib.connectedEvent += onConnected
     ib.disconnectedEvent += onDisconnected
     watchdog = Watchdog(ibc, ib, port=4001, 
@@ -39,7 +41,8 @@ if __name__ == "__main__":
         appStartupTime=int(os.environ['IBGW_WATCHDOG_APP_STARTUP_TIME']), 
         appTimeout=int(os.environ['IBGW_WATCHDOG_APP_TIMEOUT']),
         retryDelay=int(os.environ['IBGW_WATCHDOG_RETRY_DELAY']),
-        probeTimeout=int(os.environ['IBGW_WATCHDOG_PROBE_TIMEOUT']))
+        probeTimeout=int(os.environ['IBGW_WATCHDOG_PROBE_TIMEOUT']),
+        clientId=999)
     def onWatchDogStarting(_):
         logging.info('WatchDog Starting...')
     def onWatchDogStarted(_):
@@ -61,4 +64,3 @@ if __name__ == "__main__":
     watchdog.start()
     ib.run()
     logging.info('IB gateway is ready.')
-    
