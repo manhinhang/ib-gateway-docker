@@ -28,9 +28,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v3
         with:
-          username: rylorin
-          password: ${{ secrets.DOCKER_TOKEN }}
-          repository: rylorin/ib-gateway-docker
 #          tag_with_ref: true
           push: true
           tags: ${{ github.repository }}:latest
