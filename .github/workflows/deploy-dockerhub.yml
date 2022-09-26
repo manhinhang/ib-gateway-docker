@@ -28,3 +28,4 @@ jobs:
           push: true
           tags: rylorin/ib-gateway-docker:latest
           context: .
+          github-token: secrets.DOCKER_TOKEN
