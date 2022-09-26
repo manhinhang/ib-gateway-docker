@@ -5,6 +5,7 @@ on:
       - 'README.md'
       - 'LICENSE'
       - 'docker-stack.yml'
+      - '.github/workflows/deploy-dockerhub.yml'
   pull_request:
 
 jobs:
