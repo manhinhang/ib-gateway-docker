@@ -23,10 +23,10 @@ jobs:
           username: rylorin
           password: ${{ secrets.DOCKER_TOKEN }}
           repository: rylorin/ib-gateway-docker
-          tag_with_ref: true
-          secrets: |
-            "GIT_AUTH_TOKEN=${{ secrets.DOCKER_TOKEN }}" 
+#          tag_with_ref: true
+#          secrets: |
+#            "GIT_AUTH_TOKEN=${{ secrets.DOCKER_TOKEN }}" 
           push: true
-          tags: rylorin/ib-gateway-docker:latest
+          tags: latest
           context: .
 #          github-token: GIT_AUTH_TOKEN
