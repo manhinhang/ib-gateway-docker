@@ -1,21 +1,23 @@
 name: Deploy to docker hub
 
 on:
-   push:
-     branches:
-        - '*' 
-        - '!feature/**' 
-        - '!hotfix/**'
-        - '!bugfix/**' 
-     tags:
-       - 'v*'
+  push:
+    branches:
+      - '*' 
+      - '!feature/**' 
+      - '!hotfix/**'
+      - '!bugfix/**' 
+    tags:
+      - 'v*'
+  schedule:
+    - cron: $cron-daily
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@master
+#      - uses: actions/checkout@master
       -
         name: Login to DockerHub
         uses: docker/login-action@v2
