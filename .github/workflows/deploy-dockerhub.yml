@@ -10,7 +10,7 @@ on:
     tags:
       - 'v*'
   schedule:
-    - cron: $cron-daily
+    - cron: "0 3 * * 0" # Runs at 03:00 AM (UTC) every Sunday
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
         name: Login to DockerHub
         uses: docker/login-action@v2
         with:
-          username: rylorin
+          username: ${{ github.actor }}
           password: ${{ secrets.DOCKER_TOKEN }}
       -
         name: Build and push
@@ -33,5 +33,5 @@ jobs:
           repository: rylorin/ib-gateway-docker
 #          tag_with_ref: true
           push: true
-          tags: rylorin/ib-gateway-docker:latest
+          tags: ${{ github.repository }}:latest
           context: .
