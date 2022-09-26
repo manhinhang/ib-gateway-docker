@@ -17,10 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: rylorin
+          password: ${{ secrets.DOCKER_TOKEN }}
           repository: rylorin/ib-gateway-docker
           tag_with_ref: true
           secrets: |
@@ -28,4 +29,4 @@ jobs:
           push: true
           tags: rylorin/ib-gateway-docker:latest
           context: .
-          github-token: GIT_AUTH_TOKEN
+#          github-token: GIT_AUTH_TOKEN
