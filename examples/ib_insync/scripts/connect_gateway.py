@@ -2,7 +2,7 @@ from ib_insync import IB, util, Forex
 
 if __name__ == "__main__":
     ib = IB()
-    ib.connect('localhost', 4001, clientId=998)
+    ib.connect('localhost', 4002, clientId=998)
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
         contract, endDateTime='', durationStr='7 D',
