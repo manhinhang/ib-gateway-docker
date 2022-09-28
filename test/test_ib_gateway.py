@@ -39,7 +39,7 @@ wait = 60
 while not ib.isConnected():
     try:
         IB.sleep(1)
-        ib.connect('localhost', 4002, clientId=999)
+        ib.connect('localhost', 4002, clientId=998)
     except (ConnectionRefusedError, OSError, TimeoutError):
         pass
     wait -= 1
