@@ -36,7 +36,7 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.13.0/IBCLinux-3.13.0.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.14.0/IBCLinux-3.14.0.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 

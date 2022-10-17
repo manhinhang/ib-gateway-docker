@@ -46,6 +46,7 @@ docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
+-p 4002:4002 \ #brige IB gateway port to your local port 4002
 ib-gateway-docker \
 tail -f /dev/null
 ```
