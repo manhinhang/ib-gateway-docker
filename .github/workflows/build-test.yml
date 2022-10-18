@@ -1,11 +1,11 @@
 name: Build test
-on: 
+on:
   push:
     paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - 'docker-stack.yml'
-      - '.github/workflows/deploy-dockerhub.yml'
+      - "README.md"
+      - "LICENSE"
+      - "docker-stack.yml"
+      - ".github/workflows/deploy-dockerhub.yml"
   pull_request:
 
 jobs:
@@ -16,63 +16,63 @@ jobs:
     env:
       IMAGE_NAME: ib-gateway-docker
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup python
-      uses: actions/setup-python@v2
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
-    - name: Build Docker image
-      run: docker build -t $IMAGE_NAME .
-    - name: Smoke tests container image
-      run: pytest -x
-      env:
-        IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
-        IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
-        TRADE_MODE: paper
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME .
+      - name: Smoke tests container image
+        run: pytest -x
+        env:
+          IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
+          IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+          TRADE_MODE: paper
 
-    - name: Run ib_insync example
-      run: |
-        docker run --rm \
-        -e IB_ACCOUNT=$IB_ACCOUNT \
-        -e IB_PASSWORD=$IB_PASSWORD \
-        -e TRADE_MODE=paper \
-        -p 4001:4002 \
-        -d \
-        $IMAGE_NAME tail -f /dev/null;
-        sleep 30;
-        pip install ib_insync pandas;
-        python examples/ib_insync/scripts/connect_gateway.py;
-        docker stop $(docker ps -a -q)
-      env:
-        TRADE_MODE: paper
-        IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
-        IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
-        
-    - uses: 'google-github-actions/setup-gcloud@v0'
-      with:
-        version: '290.0.1'
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        export_default_credentials: true
-    - name: Run google cloud example
-      run: |
-        docker run \
-        --env GCP_SECRET=True \
-        --env GCP_SECRET_IB_ACCOUNT=$GCP_SECRET_IB_ACCOUNT  \
-        --env GCP_SECRET_IB_PASSWORD=$GCP_SECRET_IB_PASSWORD \
-        --env GCP_SECRET_IB_TRADE_MODE=$GCP_SECRET_IB_TRADE_MODE \
-        --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
-        -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
-        -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
-        -d \
-        $IMAGE_NAME;
-        sleep 30;
-        if [ -z  "$(docker ps -a -q)" ]; then exit 1; fi
-      env:
-        GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
-        GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
-        GCP_SECRET_IB_TRADE_MODE: ${{ secrets.GCP_SECRET_IB_TRADE_MODE }}
-        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Run ib_insync example
+        run: |
+          docker run --rm \
+          -e IB_ACCOUNT=$IB_ACCOUNT \
+          -e IB_PASSWORD=$IB_PASSWORD \
+          -e TRADE_MODE=paper \
+          -p 4001:4002 \
+          -d \
+          $IMAGE_NAME tail -f /dev/null;
+          sleep 30;
+          pip install ib_insync pandas;
+          python examples/ib_insync/scripts/connect_gateway.py;
+          docker stop $(docker ps -a -q)
+        env:
+          TRADE_MODE: paper
+          IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
+          IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+
+      - uses: "google-github-actions/setup-gcloud@v0"
+        with:
+          version: "290.0.1"
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      - name: Run google cloud example
+        run: |
+          docker run \
+          --env GCP_SECRET=True \
+          --env GCP_SECRET_IB_ACCOUNT=$GCP_SECRET_IB_ACCOUNT  \
+          --env GCP_SECRET_IB_PASSWORD=$GCP_SECRET_IB_PASSWORD \
+          --env GCP_SECRET_IB_TRADE_MODE=$GCP_SECRET_IB_TRADE_MODE \
+          --env GCP_PROJECT_ID=$GCP_PROJECT_ID \
+          -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/credentials.json \
+          -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/keys/credentials.json:ro \
+          -d \
+          $IMAGE_NAME;
+          sleep 30;
+          if [ -z  "$(docker ps -a -q)" ]; then exit 1; fi
+        env:
+          GCP_SECRET_IB_ACCOUNT: ${{ secrets.GCP_SECRET_IB_ACCOUNT }}
+          GCP_SECRET_IB_PASSWORD: ${{ secrets.GCP_SECRET_IB_PASSWORD }}
+          GCP_SECRET_IB_TRADE_MODE: ${{ secrets.GCP_SECRET_IB_TRADE_MODE }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
