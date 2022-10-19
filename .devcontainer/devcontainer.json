@@ -11,6 +11,14 @@
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
+	"extensions": [
+		"esbenp.prettier-vscode",
+		"yzhang.markdown-all-in-one",
+		"aaron-bond.better-comments",
+		"ms-azuretools.vscode-docker",
+		"ms-python.python",
+		"streetsidesoftware.code-spell-checker"
+	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "pip3 install --user -r requirements-test.txt",
