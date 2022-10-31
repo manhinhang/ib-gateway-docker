@@ -2,3 +2,5 @@
 .secrets
 .env
 .vscode
+.idea
+.venv

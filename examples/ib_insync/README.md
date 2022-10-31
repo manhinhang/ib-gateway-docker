@@ -1,6 +1,6 @@
 # Example for starting up & connect IB Gateway
 
-This example showing how to using [ib_insync](https://github.com/erdewit/ib_insync) library to connect `IB Gateway` 
+This example showing how to use [ib_insync](https://github.com/erdewit/ib_insync) library to connect `IB Gateway`
 
 Python script
 
@@ -9,8 +9,9 @@ Python script
 | [connect_gateway.py](scripts/connect_gateway.py) | connect `IB Gateway` and retrieve historical data |
 
 ## Docker run command
+
 ```bash
-export TRADE_MODE=#paper or live
+export TRADE_MODE=# paper or live
 export IB_ACCOUNT=# your interactive brokers account name
 export IB_PASSWORD=# your interactive brokers account password
 
