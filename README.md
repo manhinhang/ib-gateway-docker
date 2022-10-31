@@ -25,52 +25,79 @@ docker pull manhinhang/ib-gateway-docker
 ```
 
 ### Create a container from the image and run it
+
 ```bash
 docker run -d \
---env IB_ACCOUNT= \ #YOUR_USER_ID 
---env IB_PASSWORD= \ #YOUR_PASSWORD  
---env TRADE_MODE= \ #paper or live 
---p 4002:4002 \ #brige IB gateway port to your local port 4002
-manhinhang/ib-gateway-docker tail -f /dev/null
+  --env IB_ACCOUNT= \ # YOUR_USER_ID
+  --env IB_PASSWORD= \ # YOUR_PASSWORD
+  --env TRADE_MODE= \ # paper or live
+  --p 4002:4002 \ # bridge IB gateway port to your local port 4002
+  manhinhang/ib-gateway-docker tail -f /dev/null
 ```
 
 ---
 
-## Build & Run locally
+## Build & Run locally with Environment Variables
 
 ```bash
 git clone git@github.com:manhinhang/ib-gateway-docker.git
 cd ib-gateway-docker
 docker build --no-cache -t ib-gateway-docker .
+
 docker run -d \
---env IB_ACCOUNT= \ #YOUR_USER_ID 
---env IB_PASSWORD= \ #YOUR_PASSWORD  
---env TRADE_MODE= \ #paper or live 
--p 4002:4002 \ #brige IB gateway port to your local port 4002
-ib-gateway-docker \
-tail -f /dev/null
+  --env IB_ACCOUNT= \ # YOUR_USER_ID
+  --env IB_PASSWORD= \ # YOUR_PASSWORD
+  --env TRADE_MODE= \ # paper or live
+  -p 4002:4002 \ # bridge IB gateway port to your local port 4002
+  ib-gateway-docker \
+  tail -f /dev/null
 ```
 
+---
 
-## Container usage example
+### Run the container using File-based credentials
+
+#### Some secure credential providers for k8s expose an encrypted volume with a file-based mount. It is NOT recommended to use a simple volume mount containing the production keys
+
+#### The file should be JSON formatted containing the following
+
+```json
+{
+  "account": "<your account id>",
+  "password": "<your password>",
+  "trade_mode": "<Optional: can be set to live or paper>"
+}
+```
+
+#### When the trade_mode is not set in the JSON file, the value can be controlled with the TRADE_MODE environment variable
+
+#### Example (assuming credentials file is `./test.json`)
+
+```bash
+docker run -it \
+  --env IB_CREDENTIALS_FILEPATH="/mnt/test.json" \
+  -p 4002:4002 -v "./test.json:/mnt/test.json:Z" \
+  manhinhang/ib-gateway-docker tail -f /dev/null
+```
+
+### Container usage example
 
 | Example | Link | Description |
 | - | - | - |
 | ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
 | google cloud secret manager | [examples/google_cloud_secret_manager](./examples/google_cloud_secret_manager) | retreive your interactive brokers account from google cloud secret manager |
 
-
-# Tests
+## Tests
 
 The [test cases](test/test_ib_gateway.py) written with testinfra.
 
 Run the tests
 
-```
+```bash
 pytest
 ```
 
-# Github Actions for continuous integration
+## Github Actions for continuous integration
 
 After forking `IB Gateway docker` repository, you need config your **interactive brokers** paper account & password in *github secret*
 
@@ -79,7 +106,7 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
 
-# Other environment variable
+## Other environment variable
 
 | Variable Name | Description | Default value |
 | - | - | - |
@@ -90,10 +117,8 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IBGW_WATCHDOG_RETRY_DELAY | Ref to [ib_insync.ibcontroller.Watchdog.retryDelay](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.retryDelay) | 2 |
 | IBGW_WATCHDOG_PROBE_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.probeTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.probeTimeout) | 4 |
 
-
-# Disclaimer
+## Disclaimer
 
 This project is not affiliated with [Interactive Brokers Group, Inc.'s](https://www.interactivebrokers.com).
 
 Good luck and enjoy.
-

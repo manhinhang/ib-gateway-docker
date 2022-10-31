@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM python:3.11-slim
 
 # install dependencies
 RUN  apt-get update \
@@ -65,7 +65,6 @@ RUN chmod +x /root/ib_account.py
 
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
-ENV GCP_SECRET=False
 
 ENV IBGW_PORT 4002
 ENV IBGW_WATCHDOG_CONNECT_TIMEOUT 30
