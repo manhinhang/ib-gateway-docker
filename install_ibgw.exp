@@ -1,12 +1,20 @@
 #!/usr/bin/expect -f
 
 #exp_internal 1
-set timeout 60
+#spawn ./install_ibgw_test.sh
+
 log_file /root/Jts/tws_install.log
 spawn /tmp/ibgw.sh
 
-expect -re {Where should IB Gateway ..\... be installed\?\n}
+set timeout 15
+expect "Where should IB Gateway "
+set timeout 1
+expect " be installed?\r"
 send -- "\r"
-expect -re {Run IB Gateway ??\.??\?\n}
+set timeout 40
+expect "Run IB Gateway "
+set timeout 1
+expect "?\r"
+expect "Yes \[y\], No \[n, Enter\]"
 send -- "n\r"
 expect eof
