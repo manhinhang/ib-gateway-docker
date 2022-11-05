@@ -1,10 +1,11 @@
 FROM python:3.7-slim
 
+ARG IBG_VERSION=stable
 ENV IBG_VERSION=${IBG_VERSION:-stable}
 ENV IBC_VERSION=3.14.0
 ENV IB_INSYNC_VERSION=0.9.71
 
-RUN echo building IB GW ${IBG_VERSION}}
+RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
 RUN  apt-get update \
