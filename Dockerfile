@@ -9,7 +9,6 @@ RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
 RUN  apt-get update \
-  # && apt-get upgrade -y \
   && apt-get install -y \
   wget \
   unzip \

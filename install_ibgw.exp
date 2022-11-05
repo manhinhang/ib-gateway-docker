@@ -6,15 +6,18 @@
 log_file /root/Jts/tws_install.log
 spawn /tmp/ibgw.sh
 
-set timeout 15
+set timeout -1
+
 expect "Where should IB Gateway "
-set timeout 1
+expect -re "..\..."
 expect " be installed?\r"
+expect "]\r"
 send -- "\r"
-set timeout 40
+
 expect "Run IB Gateway "
-set timeout 1
+expect -re "..\..."
 expect "?\r"
-expect "Yes \[y\], No \[n, Enter\]"
+expect "Enter]\r"
 send -- "n\r"
+
 expect eof
