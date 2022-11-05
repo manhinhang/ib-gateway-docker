@@ -6,11 +6,11 @@ log_file /root/Jts/tws_install.log
 
 spawn /tmp/ibgw.sh
 
-expect "Where should IB Gateway 10.12 be installed?\r"
+expect "Where should IB Gateway [0-9][0-9].[0-9][0-9] be installed?\r"
 
 send -- "\r"
 
-expect "Run IB Gateway 10.12?\r"
+expect "Run IB Gateway [0-9][0-9].[0-9][0-9]?\r"
 
 send -- "n\r"
 
