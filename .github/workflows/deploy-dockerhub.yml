@@ -30,6 +30,8 @@ jobs:
       -
         name: Build and push
         uses: docker/build-push-action@v3
+        env:
+          IBG_VERSION: ${{ matrix.IBG_VERSION }}
         with:
           push: true
           tags: ${{ github.repository }}:${{ matrix.IBG_VERSION }}
