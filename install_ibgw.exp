@@ -1,8 +1,8 @@
 #!/usr/bin/expect -f
 
 #exp_internal 1
-#log_file /root/Jts/tws_install.log
-#spawn /tmp/ibgw.sh
+log_file /root/Jts/tws_install.log
+spawn /tmp/ibgw.sh
 
 expect -re {Where should IB Gateway ..\... be installed\?\n}
 send -- "\r"
