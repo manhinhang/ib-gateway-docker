@@ -1,12 +1,12 @@
 #!/usr/bin/expect -f
 
 #set timeout -1
-log_file /root/Jts/tws_install.log
-spawn /tmp/ibgw.sh
-expect {           
-    -regexp "Where should IB Gateway " {([[:digit:]]+)\.([[:digit:]]+)} " be installed?\r" {
+#log_file /root/Jts/tws_install.log
+#spawn /tmp/ibgw.sh
+expect {
+    -re {Where should IB Gateway ??\.?? be installed?\r} {
         send "\r"
-    } -regexp "Run IB Gateway " {([[:digit:]]+)\.([[:digit:]]+)} "\r" {
+    } -re {Run IB Gateway ??\.??\r} {
         send "n\r"
     } timeout {
         exit -1
