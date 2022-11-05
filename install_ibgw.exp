@@ -1,6 +1,7 @@
 #!/usr/bin/expect -f
 
 #exp_internal 1
+set timeout 60
 log_file /root/Jts/tws_install.log
 spawn /tmp/ibgw.sh
 
