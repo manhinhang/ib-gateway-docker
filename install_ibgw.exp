@@ -4,9 +4,9 @@
 log_file /root/Jts/tws_install.log
 spawn /tmp/ibgw.sh
 expect {           
-    -re "Where should IB Gateway [0-9][0-9].[0-9][0-9] be installed?\r" {
+    -re "Where should IB Gateway .* be installed?\r" {
         send "\r"
-    } -re "Run IB Gateway [0-9][0-9].[0-9][0-9]?\r" {
+    } -re "Run IB Gateway .*?\r" {
         send "n\r"
     } timeout {
         exit -1
@@ -15,12 +15,12 @@ expect {
     }
 }
 exit 0
-expect "Where should IB Gateway [0-9][0-9].[0-9][0-9] be installed?\r"
+#expect "Where should IB Gateway [0-9][0-9].[0-9][0-9] be installed?\r"
 
-send -- "\r"
+#send -- "\r"
 
-expect "Run IB Gateway [0-9][0-9].[0-9][0-9]?\r"
+#expect "Run IB Gateway [0-9][0-9].[0-9][0-9]?\r"
 
-send -- "n\r"
+#send -- "n\r"
 
-expect eof
+#expect eof
