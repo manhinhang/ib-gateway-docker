@@ -12,7 +12,9 @@ More information available on [Github repository](https://github.com/rylorin/ib-
 
 This docker image contains:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
+- [Python](https://hub.docker.com/layers/library/python/3.7-slim/images/sha256-07d8280c273cb45f1f6dbbe06578681eb7a8937e1224b1182b98080b01a41d01?context=explore) (3.7-slim)
+
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (stable, latest)
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.14.0)
 
@@ -22,11 +24,14 @@ This docker image contains:
 
 ## Pull the Docker image from Docker Hub
 
+The Docker images are updated every Sunday.
+
 ```bash
 docker pull rylorin/ib-gateway-docker
 ```
 
 ### Create a container from the image and run it
+
 ```bash
 docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 

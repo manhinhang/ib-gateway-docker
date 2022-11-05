@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM python:3.9-slim
 
 ARG IBG_VERSION=stable
 ENV IBG_VERSION=${IBG_VERSION:-stable}
@@ -40,22 +40,22 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
 # make dirs
 RUN mkdir -p /tmp && mkdir -p ${ibcPath} && mkdir -p ${twsPath}
 
-# download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${IBG_VERSION}-standalone/ibgateway-${IBG_VERSION}-standalone-linux-x64.sh
-RUN chmod +x /tmp/ibgw.sh
-
-# download IBC
+# download & install IBC
 RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/${IBC_VERSION}/IBCLinux-${IBC_VERSION}.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
+# remove downloaded files
+RUN rm /tmp/IBC.zip
 
-# install TWS, write output to file so that we can parse the TWS version number later
+# download IB GW
+RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${IBG_VERSION}-standalone/ibgateway-${IBG_VERSION}-standalone-linux-x64.sh
+RUN chmod +x /tmp/ibgw.sh
+# install IB Gateway, write output to file so that we can parse the version number later
 COPY install_ibgw.exp /tmp/install_ibgw.exp
 RUN chmod +x /tmp/install_ibgw.exp
 RUN /tmp/install_ibgw.exp
-
 # remove downloaded files
-RUN rm /tmp/ibgw.sh /tmp/IBC.zip
+RUN rm /tmp/ibgw.sh
 
 # copy IBC/Jts configs
 COPY ibc/config.ini ${ibcIni}
