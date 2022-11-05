@@ -3,7 +3,7 @@ version: '3.7'
 
 services:
   tws:
-    image: rylorin/ib-gateway-docker:latest
+    image: rylorin/ib-gateway-docker:stable
     environment:
       IB_ACCOUNT: ${TWS_USERID}
       IB_PASSWORD: ${TWS_PASSWORD}

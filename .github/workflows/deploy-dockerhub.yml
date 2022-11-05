@@ -17,7 +17,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     strategy:
       matrix:
         IBG_VERSION: [stable, latest]
@@ -32,8 +32,6 @@ jobs:
       -
         name: Build and push
         uses: docker/build-push-action@v3
-        # env:
-        #   IBG_VERSION: ${{ matrix.IBG_VERSION }}
         with:
           push: true
           tags: ${{ github.repository }}:${{ matrix.IBG_VERSION }}
