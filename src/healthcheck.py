@@ -9,7 +9,7 @@ if __name__ == "__main__":
     if 'IB_GATEWAY_PING_CLIENT_ID' in os.environ:
         clientId = int(os.environ['IB_GATEWAY_PING_CLIENT_ID'])
     else:
-        clientId = int(random.random() * 16382) + 1
+        clientId = int(random.random() * 15359) + 1024
     ib = IB()
     ib.connect('localhost', int(os.environ['IBGW_PORT']), clientId)
     contract = Forex('EURUSD')

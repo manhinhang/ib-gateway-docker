@@ -38,10 +38,10 @@ if __name__ == "__main__":
 
     ib.connectedEvent += onConnected
     ib.disconnectedEvent += onDisconnected
-    if 'IBGW_WATCHDOG_PING_CLIENT_ID' in os.environ:
-        clientId = int(os.environ['IBGW_WATCHDOG_PING_CLIENT_ID'])
+    if 'IBGW_WATCHDOG_CLIENT_ID' in os.environ:
+        clientId = int(os.environ['IBGW_WATCHDOG_CLIENT_ID'])
     else:
-        clientId = int(random.random() * 16382) + 1
+        clientId = int(random.random() * 15359) + 1024
     watchdog = Watchdog(ibc, ib, port=4001,
                         connectTimeout=int(
                             os.environ['IBGW_WATCHDOG_CONNECT_TIMEOUT']),

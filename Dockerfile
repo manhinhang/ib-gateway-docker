@@ -32,7 +32,6 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     javaPath=/opt/i4j_jres \
     twsPath=/root/Jts \
     twsSettingsPath=/root/Jts \
-#    IB_GATEWAY_PING_CLIENT_ID=1 \
     ibAccMaxRetryCount=30
 
 # make dirs

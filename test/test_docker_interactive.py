@@ -60,7 +60,7 @@ def test_ibgw_restart(ib_docker):
     while not ib.isConnected():
         try:
             IB.sleep(1)
-            ib.connect('localhost', 4002, clientId=999)
+            ib.connect('localhost', 4002, clientId=1025)
         except:
             pass
         wait -= 1
