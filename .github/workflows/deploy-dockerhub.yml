@@ -12,16 +12,13 @@ on:
   schedule:
     - cron: "0 3 * * 0" # Runs at 03:00 AM (UTC) every Sunday
 
-env:
-  IBG_VERSION: ("stable" "latest")
-
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       matrix:
-        IBG_VERSION: ${{ env.IBG_VERSION }}
+        IBG_VERSION: ("stable" "latest")
     steps:
       - uses: actions/checkout@master
       -
@@ -35,5 +32,5 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ${{ github.repository }}:${{ IBG_VERSION }}
+          tags: ${{ github.repository }}:${{ matrix.IBG_VERSION }}
           context: .
