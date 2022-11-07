@@ -10,11 +10,11 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12.2)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.13.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.14.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.70)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 
@@ -46,6 +46,7 @@ docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADE_MODE= \ #paper or live 
+-p 4002:4002 \ #brige IB gateway port to your local port 4002
 ib-gateway-docker \
 tail -f /dev/null
 ```
@@ -78,7 +79,7 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
 
-# Other enviornment variable
+# Other environment variable
 
 | Variable Name | Description | Default value |
 | - | - | - |
