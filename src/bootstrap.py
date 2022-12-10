@@ -72,6 +72,7 @@ if __name__ == "__main__":
 
     def onWatchDogHardTimeoutEvent(_):
         logging.info('WatchDog hard timeout!')
+        
     watchdog.startingEvent += onWatchDogStarting
     watchdog.startedEvent += onWatchDogStarted
     watchdog.stoppingEvent += onWatchDogStopping

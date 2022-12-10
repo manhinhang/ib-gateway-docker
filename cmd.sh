@@ -27,6 +27,7 @@ echo "IB gateway is ready."
 #Define cleanup procedure
 cleanup() {
     pkill java
+    pkill x11vnc
     pkill Xvfb
     pkill socat
     echo "Container stopped, performing cleanup..."

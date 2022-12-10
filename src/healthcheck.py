@@ -14,6 +14,6 @@ if __name__ == "__main__":
     ib.connect('localhost', int(os.environ['IBGW_PORT']), clientId)
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
-        contract, endDateTime='', durationStr='7 D',
+        contract, endDateTime='', durationStr='5 D',
         barSizeSetting='1 day', whatToShow='MIDPOINT', useRTH=True)
     print(bars[-1])

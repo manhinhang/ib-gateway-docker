@@ -12,6 +12,7 @@ services:
       IB_GATEWAY_PING_CLIENT_ID: ${IB_GATEWAY_PING_CLIENT_ID:-1001}
       IBGW_WATCHDOG_CLIENT_ID: ${IBGW_WATCHDOG_CLIENT_ID:-1002}
 #      TZ: UTC
+    restart: unless-stopped
     networks:
       - default
     ports:
