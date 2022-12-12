@@ -18,7 +18,7 @@ This docker image contains:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.15.2)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.72)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 
