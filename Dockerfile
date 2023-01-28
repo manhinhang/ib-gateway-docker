@@ -8,7 +8,8 @@ ENV IB_INSYNC_VERSION=0.9.71
 RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
-RUN apt-get install -y \
+RUN apt-get update \
+ && apt-get install -y \
   wget \
   unzip \
   xvfb \
