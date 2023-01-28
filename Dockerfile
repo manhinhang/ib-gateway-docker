@@ -1,5 +1,5 @@
-# FROM python:3.11-slim
-FROM arm64v8/python
+FROM python:3.11-slim
+# FROM arm64v8/python
 
 ARG IBG_VERSION=stable
 ENV IBG_VERSION=${IBG_VERSION:-stable}
@@ -24,7 +24,7 @@ RUN apt update \
   procps \
   xterm \
   x11vnc
-# RUN apt install -y openjdk-17-jre
+RUN apt install -y openjdk-17-jre
 RUN pip install ib_insync==${IB_INSYNC_VERSION} google-cloud-secret-manager==2.11.1
 
 # set environment variables
