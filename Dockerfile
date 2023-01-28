@@ -1,4 +1,5 @@
-FROM python:3.11-slim
+# FROM python:3.11-slim
+FROM arm64v8/python
 
 ARG IBG_VERSION=stable
 ENV IBG_VERSION=${IBG_VERSION:-stable}
@@ -8,7 +9,7 @@ ENV IB_INSYNC_VERSION=0.9.71
 RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
-RUN apt-get update \
+RUN apt update \
  && apt install -y \
   wget \
   unzip \
@@ -23,8 +24,7 @@ RUN apt-get update \
   procps \
   xterm \
   x11vnc
-RUN apt install -y openjdk-17-jre
-# RUN python -m pip install --upgrade pip
+# RUN apt install -y openjdk-17-jre
 RUN pip install ib_insync==${IB_INSYNC_VERSION} google-cloud-secret-manager==2.11.1
 
 # set environment variables
@@ -75,7 +75,7 @@ ENV GCP_SECRET=False
 
 ENV IBGW_PORT 4002
 ENV IBGW_WATCHDOG_CONNECT_TIMEOUT 20
-# Default values from IBGW documentation
+# Default values from IBC documentation
 ENV IBGW_WATCHDOG_APP_STARTUP_TIME 30
 ENV IBGW_WATCHDOG_APP_TIMEOUT 20
 ENV IBGW_WATCHDOG_RETRY_DELAY 2

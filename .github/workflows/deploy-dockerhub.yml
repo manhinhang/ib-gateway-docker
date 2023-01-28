@@ -6,11 +6,13 @@ on:
       - '*' 
       - '!feature/**' 
       - '!hotfix/**'
-      - '!bugfix/**' 
+      - '!bugfix/**'
+      - '!dev'
     tags:
       - 'v*'
     paths-ignore:
       - "README.md"
+      - "test/**"
   schedule:
     - cron: "0 3 * * 0" # Runs at 03:00 AM (UTC) every Sunday
 

@@ -16,7 +16,7 @@ This docker image contains:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (stable, latest)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.15.2)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.16.0)
 
 - [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
 
