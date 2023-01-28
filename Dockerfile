@@ -1,15 +1,15 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 ARG IBG_VERSION=stable
 ENV IBG_VERSION=${IBG_VERSION:-stable}
-ENV IBC_VERSION=3.15.2
+ENV IBC_VERSION=3.16.0
 ENV IB_INSYNC_VERSION=0.9.71
 
 RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
 RUN apt-get update \
- && apt-get install -y \
+ && apt install -y \
   wget \
   unzip \
   xvfb \
