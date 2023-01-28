@@ -19,6 +19,7 @@ def host(request):
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADE_MODE={}'.format(trade_mode),
+        '-p', '4002:4002',
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     # return a testinfra connection to the container
