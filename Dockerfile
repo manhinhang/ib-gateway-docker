@@ -8,8 +8,7 @@ ENV IB_INSYNC_VERSION=0.9.71
 RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
-RUN  apt-get update \
-  && apt-get install -y \
+RUN apt-get install -y \
   wget \
   unzip \
   xvfb \
@@ -24,7 +23,7 @@ RUN  apt-get update \
   xterm \
   x11vnc
 RUN apt install -y openjdk-17-jre
-RUN python -m pip install --upgrade pip
+# RUN python -m pip install --upgrade pip
 RUN pip install ib_insync==${IB_INSYNC_VERSION} google-cloud-secret-manager==2.11.1
 
 # set environment variables
