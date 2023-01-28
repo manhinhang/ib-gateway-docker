@@ -38,7 +38,10 @@ class IBAccount(object):
     @classmethod
     def trade_mode(cls):
         if not cls.isEnabledGCPSecret():
-            return os.environ['TRADE_MODE']
+            if 'TRADE_MODE' in os.environ:
+                return os.environ['TRADE_MODE']
+            else:
+                return 'paper'
         return cls.retrieve_secret(os.environ['GCP_SECRET_IB_TRADE_MODE'])
 
     

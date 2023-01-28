@@ -69,10 +69,6 @@ RUN chmod +x /root/cmd.sh
 COPY src/*.py /root/
 RUN chmod +x /root/*.py
 
-# copy README file for reference
-RUN ls -l
-#COPY README.md /root/
-
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 ENV GCP_SECRET=False
