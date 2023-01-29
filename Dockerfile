@@ -10,7 +10,7 @@ RUN echo building IB GW ${IBG_VERSION}
 
 # install dependencies
 RUN apt update \
- && apt install -y \
+ && apt install -y --no-install-recommends \
   wget \
   unzip \
   xvfb \
