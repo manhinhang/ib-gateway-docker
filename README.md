@@ -12,7 +12,7 @@ More information available on [Github repository](https://github.com/rylorin/ib-
 
 This docker image contains:
 
-- [Python](https://hub.docker.com/_/python) (3.9-slim)
+- [Python](https://hub.docker.com/_/python) (3.11-slim)
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (stable, latest)
 

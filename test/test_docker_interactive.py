@@ -19,7 +19,7 @@ def ib_docker():
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADE_MODE={}'.format(trade_mode),
-        # '-p', '4002:4002',
+        '-p', '4002:4002',
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     yield docker_id

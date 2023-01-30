@@ -24,7 +24,7 @@ jobs:
       matrix:
         IBG_VERSION: [stable, latest]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       -
         name: Login to DockerHub
         uses: docker/login-action@v2
@@ -33,9 +33,10 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       -
         name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           tags: ${{ github.repository }}:${{ matrix.IBG_VERSION }}
           context: .
           build-args: IBG_VERSION=${{ matrix.IBG_VERSION }}
+          platforms: linux/amd64,linux/arm64v8
