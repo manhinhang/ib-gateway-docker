@@ -1,4 +1,6 @@
-FROM python:3.7-slim
+FROM python:3.11-slim
+ARG IBC_VER="3.16.2"
+ARG IB_INSYNC_VER="0.9.85"
 
 # install dependencies
 RUN  apt-get update \
@@ -16,7 +18,7 @@ RUN  apt-get update \
   procps \
   xterm
 RUN apt install -y openjdk-17-jre
-RUN pip install ib_insync==0.9.71 google-cloud-secret-manager==2.11.1
+RUN pip install ib_insync==$IB_INSYNC_VER google-cloud-secret-manager==2.11.1
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -36,13 +38,15 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/3.14.0/IBCLinux-3.14.0.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER/IBCLinux-$IBC_VER.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 
 # install TWS, write output to file so that we can parse the TWS version number later
+RUN touch $TWS_INSTALL_LOG
 COPY install_ibgw.exp /tmp/install_ibgw.exp
 RUN chmod +x /tmp/install_ibgw.exp
+RUN cat /tmp/ibgw.sh
 RUN /tmp/install_ibgw.exp
 
 # remove downloaded files
