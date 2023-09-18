@@ -1,6 +1,6 @@
 FROM python:3.11-slim
-ARG IBC_VER="3.16.2"
-ARG IB_INSYNC_VER="0.9.85"
+ARG IBC_VER="3.18.0"
+ARG IB_INSYNC_VER="0.9.86"
 
 # install dependencies
 RUN  apt-get update \
@@ -46,7 +46,6 @@ RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 RUN touch $TWS_INSTALL_LOG
 COPY install_ibgw.exp /tmp/install_ibgw.exp
 RUN chmod +x /tmp/install_ibgw.exp
-RUN cat /tmp/ibgw.sh
 RUN /tmp/install_ibgw.exp
 
 # remove downloaded files
