@@ -1,11 +1,11 @@
 #!/usr/local/bin/python
 import os, random
 from ib_insync import IB, util, Forex
-from ib_account import IBAccount
+# from ib_account import IBAccount
 
 if __name__ == "__main__":
-    account = IBAccount.account()
-    password = IBAccount.password()
+    # account = IBAccount.account()
+    # password = IBAccount.password()
     if 'IB_GATEWAY_PING_CLIENT_ID' in os.environ:
         clientId = int(os.environ['IB_GATEWAY_PING_CLIENT_ID'])
     else:

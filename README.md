@@ -5,7 +5,7 @@
 [![GitHub](https://img.shields.io/github/license/rylorin/ib-gateway-docker)](https://github.com/rylorin/ib-gateway-docker/blob/develop/LICENSE)
 
 This container is based on [work from manhinhang](https://github.com/manhinhang/ib-gateway-docker) with the following changes:
-- VNC server added (can be activated upon user's choice). Because I want to be able to look at what is going on the gateway.
+- VNC server added (can be activated upon user's choice). Because it's sometimes usefull to see what's going on the gateway.
 - Health-check based on Docker's native feature added. Because the container must be restarted if needed.
 
 More information available on [Github repository](https://github.com/rylorin/ib-gateway-docker).
@@ -16,9 +16,9 @@ This docker image contains:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (stable, latest)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.16.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.18.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.72)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 
@@ -34,11 +34,12 @@ docker pull rylorin/ib-gateway-docker
 
 ```bash
 docker run -d \
---env IB_ACCOUNT= \ #YOUR_USER_ID 
---env IB_PASSWORD= \ #YOUR_PASSWORD  
---env TRADE_MODE= \ #paper or live 
---p 4002:4002 \ #brige IB gateway port to your local port 4002
-rylorin/ib-gateway-docker tail -f /dev/null
+--env IB_ACCOUNT= \ # YOUR_USER_ID 
+--env IB_PASSWORD= \ # YOUR_PASSWORD  
+--env TRADE_MODE= \ # paper or live 
+--publish 4002:4002 \ # brige IB gateway port to your local port 4002
+--publish 5009:5009 \ # VNC server running on local port 5009
+rylorin/ib-gateway-docker tail -f ./Jts/launcher.log
 ```
 
 ---
