@@ -20,7 +20,7 @@ RUN  apt-get update \
   procps \
   xterm
 RUN apt install -y openjdk-17-jre
-RUN pip install ib_insync==$IB_INSYNC_VER google-cloud-secret-manager==2.11.1
+RUN pip install ib_insync==$IB_INSYNC_VER
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
