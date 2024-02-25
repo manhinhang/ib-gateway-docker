@@ -1,5 +1,7 @@
 FROM python:3.11-slim
+# IBC Version : https://github.com/IbcAlpha/IBC/releases
 ARG IBC_VER="3.18.0"
+# ib_insync : https://pypi.org/project/ib-insync/#history
 ARG IB_INSYNC_VER="0.9.86"
 
 # install dependencies
