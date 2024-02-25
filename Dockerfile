@@ -40,7 +40,7 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER/IBCLinux-$IBC_VER.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER-Update.1/IBCLinux-$IBC_VER.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 
