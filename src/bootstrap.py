@@ -9,7 +9,7 @@ if __name__ == "__main__":
     logging.info('start ib gateway...')
     logging.info('---ib gateway info---')
     twsPath = os.environ['twsPath']
-    logging.info('twsPath', twsPath)
+    logging.info(f'twsPath: {twsPath}')
     gatewayRootPath = "{}/ibgateway".format(twsPath)
     ib_gateway_version = int(os.listdir(gatewayRootPath)[0])
     gatewayPath = "{}/{}".format(gatewayRootPath, ib_gateway_version)
