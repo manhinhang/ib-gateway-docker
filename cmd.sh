@@ -17,9 +17,9 @@ echo "Setup port forwarding..."
 socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever &
 echo "*****************************"
 
-python /root/bootstrap.py
+# python /root/bootstrap.py
 
-echo "IB gateway is ready."
+# echo "IB gateway is ready."
 
 #Define cleanup procedure
 cleanup() {
@@ -31,5 +31,10 @@ cleanup() {
 
 #Trap TERM
 trap 'cleanup' INT TERM
+echo "IB gateway starting..."
 
-$@
+${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
+     "--tws-path=${TWS_PATH}" \
+     "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
+     "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
+     "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"

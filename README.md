@@ -14,10 +14,6 @@ This docker image just installed:
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.18.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.86)
-
-- [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
-
 ## Pull the Docker image from Docker Hub
 
 ```bash
@@ -57,8 +53,6 @@ tail -f /dev/null
 | Example | Link | Description |
 | - | - | - |
 | ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
-| google cloud secret manager | [examples/google_cloud_secret_manager](./examples/google_cloud_secret_manager) | retreive your interactive brokers account from google cloud secret manager |
-
 
 # Tests
 
@@ -78,18 +72,6 @@ After forking `IB Gateway docker` repository, you need config your **interactive
 | - | - |
 | IB_ACCOUNT | your paper account name |
 | IB_PASSWORD | your paper account password |
-
-# Other environment variable
-
-| Variable Name | Description | Default value |
-| - | - | - |
-| IB_GATEWAY_PING_CLIENT_ID | ib gateway client id for pinging client status | 1 |
-| IBGW_WATCHDOG_CONNECT_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.connectTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.connectTimeout) | 30 |
-| IBGW_WATCHDOG_APP_STARTUP_TIME | [ib_insync.ibcontroller.Watchdog.appStartupTime](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appStartupTime) | 30 |
-| IBGW_WATCHDOG_APP_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.appTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.appTimeout) | 30 |
-| IBGW_WATCHDOG_RETRY_DELAY | Ref to [ib_insync.ibcontroller.Watchdog.retryDelay](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.retryDelay) | 2 |
-| IBGW_WATCHDOG_PROBE_TIMEOUT | Ref to [ib_insync.ibcontroller.Watchdog.probeTimeout](https://ib-insync.readthedocs.io/api.html#ib_insync.ibcontroller.Watchdog.probeTimeout) | 4 |
-
 
 # Disclaimer
 
