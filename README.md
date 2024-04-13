@@ -10,11 +10,11 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.12.2)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.14.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.18.0)
 
-- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.71)
+- [ib_insync](https://github.com/erdewit/ib_insync) (0.9.86)
 
 - [google-cloud-secret-manager](https://github.com/googleapis/python-secret-manager) (2.11.1)
 

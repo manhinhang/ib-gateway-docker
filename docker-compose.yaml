@@ -1,0 +1,17 @@
+services:
+  ib-gateway:
+    image: manhinhang/ib-gateway-docker
+    command: tail -f /dev/null
+    ports:
+      - 4002:4002
+    environment:
+      - IB_ACCOUNT=$IB_ACCOUNT
+      - IB_PASSWORD=$IB_PASSWORD
+      - TRADE_MODE=$TRADE_MODE
+secrets:
+  IB_ACCOUNT:
+    environment: "IB_ACCOUNT"
+  IB_PASSWORD:
+    environment: "IB_PWD"
+  TRADE_MODE:
+    environment: "TRADE_MODE"
