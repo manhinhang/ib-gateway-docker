@@ -55,7 +55,6 @@ RUN rm /tmp/ibgw.sh /tmp/IBC.zip
 
 # copy IBC/Jts configs
 COPY ibc/config.ini ${ibcIni}
-COPY ibc/jts.ini ${twsPath}/jts.ini
 
 # copy cmd script
 WORKDIR /root
