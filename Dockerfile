@@ -1,6 +1,8 @@
 FROM python:3.11-slim
-ARG IBC_VER="3.16.2"
-ARG IB_INSYNC_VER="0.9.85"
+# IBC Version : https://github.com/IbcAlpha/IBC/releases
+ARG IBC_VER="3.18.0"
+# ib_insync : https://pypi.org/project/ib-insync/#history
+ARG IB_INSYNC_VER="0.9.86"
 
 # install dependencies
 RUN  apt-get update \
@@ -18,7 +20,7 @@ RUN  apt-get update \
   procps \
   xterm
 RUN apt install -y openjdk-17-jre
-RUN pip install ib_insync==$IB_INSYNC_VER google-cloud-secret-manager==2.11.1
+RUN pip install ib_insync==$IB_INSYNC_VER
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -38,7 +40,7 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER/IBCLinux-$IBC_VER.zip
+RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER-Update.1/IBCLinux-$IBC_VER.zip
 RUN unzip /tmp/IBC.zip -d ${ibcPath}
 RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 
@@ -46,7 +48,6 @@ RUN chmod +x ${ibcPath}/*.sh ${ibcPath}/*/*.sh
 RUN touch $TWS_INSTALL_LOG
 COPY install_ibgw.exp /tmp/install_ibgw.exp
 RUN chmod +x /tmp/install_ibgw.exp
-RUN cat /tmp/ibgw.sh
 RUN /tmp/install_ibgw.exp
 
 # remove downloaded files
@@ -54,7 +55,6 @@ RUN rm /tmp/ibgw.sh /tmp/IBC.zip
 
 # copy IBC/Jts configs
 COPY ibc/config.ini ${ibcIni}
-COPY ibc/jts.ini ${twsPath}/jts.ini
 
 # copy cmd script
 WORKDIR /root
