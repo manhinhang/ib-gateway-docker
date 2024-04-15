@@ -26,5 +26,5 @@ For debugging, Use x11 forwarding to visit IB gateway GUI for the investigation.
     -v ~/.Xauthority:/root/.Xauthority \
     -e DISPLAY=$ip:0 \
     -p 4002:4002 \
-    ib-gateway-docker tail -f /dev/null
+    ib-gateway-docker
     ```

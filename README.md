@@ -27,7 +27,7 @@ docker run -d \
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADING_MODE= \ #paper or live 
 --p 4002:4002 \ #brige IB gateway port to your local port 4002
-manhinhang/ib-gateway-docker tail -f /dev/null
+manhinhang/ib-gateway-docker
 ```
 
 ---
@@ -43,8 +43,7 @@ docker run -d \
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADING_MODE= \ #paper or live 
 -p 4002:4002 \ #brige IB gateway port to your local port 4002
-ib-gateway-docker \
-tail -f /dev/null
+ib-gateway-docker
 ```
 
 

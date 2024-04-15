@@ -1,7 +1,6 @@
 services:
   ib-gateway:
     image: manhinhang/ib-gateway-docker
-    command: tail -f /dev/null
     ports:
       - 4002:4002
     environment:

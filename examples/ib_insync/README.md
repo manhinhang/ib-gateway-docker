@@ -20,7 +20,7 @@ docker run --rm \
 -e TRADING_MODE=$TRADING_MODE \
 -p 4001:4002 \
 -d \
-manhinhang/ib-gateway-docker:latest tail -f /dev/null
+manhinhang/ib-gateway-docker:latest
 
 pip install ib_insync pandas
 python ib_insync/scripts/connect_gateway.py

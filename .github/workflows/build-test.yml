@@ -39,7 +39,7 @@ jobs:
         -e TRADING_MODE=paper \
         -p 4001:4002 \
         -d \
-        $IMAGE_NAME tail -f /dev/null;
+        $IMAGE_NAME;
         sleep 30;
         pip install ib_insync pandas;
         python examples/ib_insync/scripts/connect_gateway.py;
