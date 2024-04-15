@@ -1,0 +1,25 @@
+name: Detect new IB gateway version
+on: 
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      IMAGE_NAME: ib-gateway-docker
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup python
+      uses: actions/setup-python@v5
+    - name: detect new ib gateway version
+      id: detect-new-ibg-ver
+      run: |
+        ib-gateway-ver=$(python scripts/detect_ib_gateway_ver.py) >> "$GITHUB_OUTPUT"
+        cur-ib-gateway-ver=$(cat ib-gateway-ver)
+        if [ "$ib-gateway-ver" = "$cur-ib-gateway-ver" ]; then
+            echo "No dated IB gateway version"
+        else
+            echo "New IB gateway version($ib-gateway-ver)"
+        fi
