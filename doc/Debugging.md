@@ -22,9 +22,9 @@ For debugging, Use x11 forwarding to visit IB gateway GUI for the investigation.
     docker run --platform linux/amd64 -d \
     --env IB_ACCOUNT= \
     --env IB_PASSWORD= \
-    --env TRADE_MODE= \
+    --env TRADING_MODE= \
     -v ~/.Xauthority:/root/.Xauthority \
     -e DISPLAY=$ip:0 \
     -p 4002:4002 \
-    ib-gateway-docker tail -f /dev/null
+    ib-gateway-docker
     ```

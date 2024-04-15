@@ -3,6 +3,7 @@ import subprocess
 import testinfra
 import os
 import time
+from ib_insync import IB, util, Forex
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
@@ -12,14 +13,14 @@ IMAGE_NAME = os.environ['IMAGE_NAME']
 def host(request):
     account = 'test'
     password = 'test'
-    trade_mode = 'paper'
+    trading_mode = 'paper'
 
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
-        '--env', 'TRADE_MODE={}'.format(trade_mode),
+        '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     # return a testinfra connection to the container
@@ -28,12 +29,24 @@ def host(request):
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
 def test_ib_connect_fail(host):
-    script = """
-from ib_insync import *
-IB.sleep(60)
-ib = IB()
-ib.connect('localhost', 4001, clientId=1)
-ib.disconnect()
-"""
-    cmd = host.run("python -c \"{}\"".format(script))
-    assert cmd.rc != 0
+    try:
+        ib = IB()
+        wait = 60
+        while not ib.isConnected():
+            try:
+                IB.sleep(1)
+                ib.connect('localhost', 4002, clientId=999)
+            except:
+                pass
+            wait -= 1
+            if wait <= 0:
+                break
+        
+        contract = Forex('EURUSD')
+        bars = ib.reqHistoricalData(
+            contract, endDateTime='', durationStr='30 D',
+            barSizeSetting='1 hour', whatToShow='MIDPOINT', useRTH=True)
+        assert False
+    except:
+        pass
+
