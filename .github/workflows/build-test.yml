@@ -29,14 +29,14 @@ jobs:
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
-        TRADE_MODE: paper
+        TRADING_MODE: paper
 
     - name: Run ib_insync example
       run: |
         docker run --rm \
         -e IB_ACCOUNT=$IB_ACCOUNT \
         -e IB_PASSWORD=$IB_PASSWORD \
-        -e TRADE_MODE=paper \
+        -e TRADING_MODE=paper \
         -p 4001:4002 \
         -d \
         $IMAGE_NAME tail -f /dev/null;
@@ -45,7 +45,7 @@ jobs:
         python examples/ib_insync/scripts/connect_gateway.py;
         docker stop $(docker ps -a -q)
       env:
-        TRADE_MODE: paper
+        TRADING_MODE: paper
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
 

@@ -12,14 +12,14 @@ IMAGE_NAME = os.environ['IMAGE_NAME']
 def host(request):
     account = 'test'
     password = 'test'
-    trade_mode = 'paper'
+    trading_mode = 'paper'
 
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
-        '--env', 'TRADE_MODE={}'.format(trade_mode),
+        '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-d', IMAGE_NAME, 
         "tail", "-f", "/dev/null"]).decode().strip()
     # return a testinfra connection to the container

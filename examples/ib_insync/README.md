@@ -10,14 +10,14 @@ Python script
 
 ## Docker run command
 ```bash
-export TRADE_MODE=#paper or live
+export TRADING_MODE=#paper or live
 export IB_ACCOUNT=# your interactive brokers account name
 export IB_PASSWORD=# your interactive brokers account password
 
 docker run --rm \
 -e IB_ACCOUNT=$IB_ACCOUNT \
 -e IB_PASSWORD=$IB_PASSWORD \
--e TRADE_MODE=$TRADE_MODE \
+-e TRADING_MODE=$TRADING_MODE \
 -p 4001:4002 \
 -d \
 manhinhang/ib-gateway-docker:latest tail -f /dev/null
