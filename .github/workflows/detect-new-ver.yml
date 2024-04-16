@@ -35,8 +35,8 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
-        cat README.template | envsubst > README.md
-        cat Dockerfile.template | envsubst > Dockerfile
+        cat README.template | envsubst > README.update 
+        cat Dockerfile.template | envsubst > Dockerfile.update 
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:
@@ -47,6 +47,10 @@ jobs:
         git config user.email github-actions@github.com
         git pull
         git checkout -b "$branch" origin/master
+        # Update files
+        cp README.update README.md
+        cp Dockerfile.update Dockerfile
+        #####
         git add *
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
