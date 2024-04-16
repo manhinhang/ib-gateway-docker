@@ -18,10 +18,10 @@ jobs:
     - name: detect new ib gateway version
       id: check-update
       run: |
-        ib-gateway-ver=$(python scripts/detect_ib_gateway_ver.py) >> "$GITHUB_OUTPUT"
+        echo ib-gateway-ver=$(python scripts/detect_ib_gateway_ver.py) >> "$GITHUB_OUTPUT"
         python scripts/detect_ibc_ver.py
-        ibc-ver=${IBC_VER} >> "$GITHUB_OUTPUT"
-        ibc-asset-url=${IBC_ASSET_URL} >> "$GITHUB_OUTPUT"
+        echo ibc-ver=${IBC_VER} >> "$GITHUB_OUTPUT"
+        echo ibc-asset-url=${IBC_ASSET_URL} >> "$GITHUB_OUTPUT"
         cur-ib-gateway-ver=$(cat ib-gateway-ver)
         cur-ibc-ver=$(cat ibc-ver)
         if [ "$ib-gateway-ver" = "$cur-ib-gateway-ver" ]; then
