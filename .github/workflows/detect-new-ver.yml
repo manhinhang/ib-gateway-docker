@@ -46,7 +46,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git pull
-        git checkout -b "$branch" origin/master
+        git checkout -b "$branch" origin/develop
         # Update files
         cp README.update README.md
         cp Dockerfile.update Dockerfile
@@ -56,5 +56,5 @@ jobs:
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
 
-        # gh pr create --base master --fill
+        # gh pr create --base develop --fill
       
