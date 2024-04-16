@@ -48,11 +48,11 @@ jobs:
         git pull
         git checkout -b "$branch" origin/master
         # Update files
-        cp README.update README.m
-        cp Dockerfile.update Dockderfile
+        cp README.update README.md
+        cp Dockerfile.update Dockerfile
         #####
         git add README.md
-        git add Dockderfile
+        git add Dockerfile
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
 
