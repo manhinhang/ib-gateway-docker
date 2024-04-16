@@ -23,9 +23,8 @@ jobs:
         python scripts/detect_ibc_ver.py
         echo ibc-ver=${IBC_VER} >> "$GITHUB_OUTPUT"
         echo ibc-asset-url=${IBC_ASSET_URL} >> "$GITHUB_OUTPUT"
-        export CUR_IB_GATEWAY_VER=$(cat ib-gateway-ver)
-        export CUR_IBC_VER=$(cat ibc-ver)
-        if [ "$ib-gateway-ver" = "$CUR_IB_GATEWAY_VER" ]; then
+        source default.env
+        if [ "$IB_GATEWAY_VER" = "$CUR_IB_GATEWAY_VER" ]; then
             echo "No dated IB gateway version"
             echo has_update=false >> "$GITHUB_OUTPUT"
         else
@@ -50,11 +49,13 @@ jobs:
         # Update files
         cp README.update README.md
         cp Dockerfile.update Dockerfile
+        echo "CUR_IB_GATEWAY_VER=${{ steps.check-update.outputs.ib-gateway-ver }}`" > default.env
+        echo "CUR_IBC_VER=${{ steps.check-update.outputs.ibc-ver }}`" >> default.env
         #####
         git add README.md
         git add Dockerfile
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
 
-        # gh pr create --base develop --fill
+        gh pr create --base develop --fill
       
