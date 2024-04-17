@@ -44,8 +44,8 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
-        cat README.template | envsubst > README.update 
-        cat Dockerfile.template | envsubst > Dockerfile.update 
+        sed 's/###IB_GATEWAY_VER###/${{steps.check-update.outputs.ib-gateway-ver}}/g;s/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g' README.template > README.update
+        sed 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g;s/###IBC_ASSET_URL###/${{steps.check-update.outputs.ibc-asset-url}}/g' Dockerfile.template > Dockerfile.update
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:
@@ -70,4 +70,4 @@ jobs:
         git push --set-upstream origin "$branch"
 
         gh pr create --base develop --fill
-      
+sed "s/###IB_GATEWAY_VER###/10.19.2l/g;s/###IBC_VER###/3.18.0/g" README.template > README.update
