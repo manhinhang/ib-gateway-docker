@@ -10,7 +10,7 @@ if __name__ == "__main__":
     for asset in latest["assets"]:
         if asset["name"].startswith("IBCLinux"):
             asset_url = asset["browser_download_url"]
-    os.putenv("IBC_VER", ver)
-    os.putenv("IBC_ASSET_URL", asset_url)
-    print(ver)
-    print(asset_url)
+
+    with open('.env', 'a') as fp:
+        fp.write(f'IBC_VER={ver}\n')
+        fp.write(f'IBC_ASSET_URL={asset_url}\n')
