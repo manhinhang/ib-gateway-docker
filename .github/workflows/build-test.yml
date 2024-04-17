@@ -1,6 +1,9 @@
 name: Build test
 on: 
   push:
+    branches:
+      - develop
+      - master
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
