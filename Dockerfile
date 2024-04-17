@@ -1,8 +1,7 @@
 FROM python:3.11-slim
 # IBC Version : https://github.com/IbcAlpha/IBC/releases
 ARG IBC_VER="3.18.0"
-# ib_insync : https://pypi.org/project/ib-insync/#history
-ARG IB_INSYNC_VER="0.9.86"
+ARG IBC_ASSET_URL="https://github.com/IbcAlpha/IBC/releases/download/-Update.1/IBCLinux-.zip"
 
 # install dependencies
 RUN  apt-get update \
@@ -31,19 +30,19 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     TWOFA_TIMEOUT_ACTION=restart
 
 # make dirs
-RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH}
+RUN mkdir -p /tmp && mkdir -p  && mkdir -p 
 
 # download IB TWS
 RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/ibgateway-stable-standalone-linux-x64.sh
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER-Update.1/IBCLinux-$IBC_VER.zip
-RUN unzip /tmp/IBC.zip -d ${IBC_PATH}
-RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
+RUN wget -q -O /tmp/IBC.zip 
+RUN unzip /tmp/IBC.zip -d 
+RUN chmod +x /*.sh /*/*.sh
 
 # install TWS, write output to file so that we can parse the TWS version number later
-RUN touch $TWS_INSTALL_LOG
+RUN touch 
 COPY install_ibgw.exp /tmp/install_ibgw.exp
 RUN chmod +x /tmp/install_ibgw.exp
 RUN /tmp/install_ibgw.exp
@@ -52,7 +51,7 @@ RUN /tmp/install_ibgw.exp
 RUN rm /tmp/ibgw.sh /tmp/IBC.zip
 
 # copy IBC/Jts configs
-COPY ibc/config.ini ${IBC_INI}
+COPY ibc/config.ini 
 
 # copy cmd script
 WORKDIR /root
@@ -64,6 +63,6 @@ ENV DISPLAY=:0
 
 ENV IBGW_PORT 4002
 
-EXPOSE $IBGW_PORT
+EXPOSE 
 
 ENTRYPOINT [ "sh", "/root/cmd.sh" ] 
