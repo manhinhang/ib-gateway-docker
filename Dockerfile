@@ -1,8 +1,7 @@
 FROM python:3.11-slim
 # IBC Version : https://github.com/IbcAlpha/IBC/releases
 ARG IBC_VER="3.18.0"
-# ib_insync : https://pypi.org/project/ib-insync/#history
-ARG IB_INSYNC_VER="0.9.86"
+ARG IBC_ASSET_URL="https://github.com/IbcAlpha/IBC/releases/download/3.18.0-Update.1/IBCLinux-3.18.0.zip"
 
 # install dependencies
 RUN  apt-get update \
@@ -38,7 +37,7 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip https://github.com/IbcAlpha/IBC/releases/download/$IBC_VER-Update.1/IBCLinux-$IBC_VER.zip
+RUN wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL}
 RUN unzip /tmp/IBC.zip -d ${IBC_PATH}
 RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 
