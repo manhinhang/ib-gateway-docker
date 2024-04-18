@@ -44,8 +44,13 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
+        . scripts/extract_ib_gateway_major_minor.sh ${{steps.check-update.outputs.ib-gateway-ver}}
         sed -e 's/###IB_GATEWAY_VER###/${{steps.check-update.outputs.ib-gateway-ver}}/g' -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g' README.template > README.update
-        sed -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g' -e 's,###IBC_ASSET_URL###,${{steps.check-update.outputs.ibc-asset-url}},g' Dockerfile.template > Dockerfile.update
+        sed -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g' \
+        -e 's,###IBC_ASSET_URL###,${{steps.check-update.outputs.ibc-asset-url}},g' \
+        -e 's,###IB_GATEWAY_MAJOR###,${IB_GATEWAY_MAJOR},g' \
+        -e 's,###IB_GATEWAY_MINOR###,${IB_GATEWAY_MINOR},g' \
+        Dockerfile.template > Dockerfile.update
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:

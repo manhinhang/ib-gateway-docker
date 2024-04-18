@@ -2,6 +2,8 @@ FROM python:3.11-slim
 # IBC Version : https://github.com/IbcAlpha/IBC/releases
 ARG IBC_VER="3.18.0"
 ARG IBC_ASSET_URL="https://github.com/IbcAlpha/IBC/releases/download/3.18.0-Update.1/IBCLinux-3.18.0.zip"
+ARG IB_GATEWAY_MAJOR="10"
+ARG IB_GATEWAY_MINOR="19"
 
 # install dependencies
 RUN  apt-get update \
@@ -27,7 +29,9 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     javaPath=/opt/i4j_jres \
     TWS_PATH=/root/Jts \
     twsSettingsPath=/root/Jts \
-    TWOFA_TIMEOUT_ACTION=restart
+    TWOFA_TIMEOUT_ACTION=restart \
+    IB_GATEWAY_MAJOR=${IB_GATEWAY_MAJOR} \
+    IB_GATEWAY_MINOR=${IB_GATEWAY_MINOR} 
 
 # make dirs
 RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH}
