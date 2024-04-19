@@ -17,6 +17,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@master
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build heathcheck tool
+        working-directory: heathcheck
+        run: ./gradlew build
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5

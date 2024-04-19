@@ -28,7 +28,7 @@ def host(request):
     # at the end of the test suite, destroy the container
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
-def test_ib_connect_fail(host):
+def test_ib_insync_connect_fail(host):
     try:
         ib = IB()
         wait = 60
@@ -50,3 +50,10 @@ def test_ib_connect_fail(host):
     except:
         pass
 
+def test_heathcheck_fail(host):
+    
+    try:
+        host.run('heathcheck')
+        assert False
+    except:
+        pass

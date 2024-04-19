@@ -57,6 +57,10 @@ RUN rm /tmp/ibgw.sh /tmp/IBC.zip
 # copy IBC/Jts configs
 COPY ibc/config.ini ${IBC_INI}
 
+# install heathcheck tool
+ADD heathcheck/heathcheck/build/distributions/heathcheck.tar /
+ENV PATH="${PATH}:/heathcheck/heathcheck/bin"
+
 # copy cmd script
 WORKDIR /root
 COPY cmd.sh /root/cmd.sh

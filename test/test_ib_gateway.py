@@ -25,4 +25,7 @@ def host(request):
     yield testinfra.get_host("docker://" + docker_id)
     # at the end of the test suite, destroy the container
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
+    return docker_id
 
+def test_heathcheck_fail(host):
+    host.run('heathcheck')
