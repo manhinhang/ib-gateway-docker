@@ -28,4 +28,4 @@ def host(request):
     return docker_id
 
 def test_heathcheck_fail(host):
-    host.run('heathcheck')
+    host.run('healthcheck')
