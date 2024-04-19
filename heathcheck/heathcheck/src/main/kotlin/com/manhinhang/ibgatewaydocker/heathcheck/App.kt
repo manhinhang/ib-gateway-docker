@@ -16,6 +16,7 @@ fun main() {
     reader.start()
     Thread {
         while (client.isConnected) {
+            client.eDisconnect()
             exitProcess(0)
         }
         exitProcess(-1)
