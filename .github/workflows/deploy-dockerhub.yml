@@ -17,11 +17,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@master
-      - name: Build headthcheck tool
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          build-root-directory: heathcheck
-          arguments: 'build'
+      - name: Build heathcheck tool
+        working-directory: heathcheck
+        run: ./gradlew build
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
