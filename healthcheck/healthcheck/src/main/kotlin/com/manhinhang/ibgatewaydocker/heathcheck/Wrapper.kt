@@ -1,4 +1,4 @@
-package com.manhinhang.ibgatewaydocker.heathcheck
+package com.manhinhang.ibgatewaydocker.healthcheck
 
 import com.ib.client.*
 import java.lang.Exception

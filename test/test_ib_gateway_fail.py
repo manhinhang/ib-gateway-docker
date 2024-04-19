@@ -50,10 +50,10 @@ def test_ib_insync_connect_fail(host):
     except:
         pass
 
-def test_heathcheck_fail(host):
+def test_healthcheck_fail(host):
     
     try:
-        host.run('heathcheck')
+        host.run('healthcheck')
         assert False
     except:
         pass

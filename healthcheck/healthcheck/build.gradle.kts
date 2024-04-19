@@ -43,5 +43,5 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "com.manhinhang.ibgatewaydocker.heathcheck.AppKt"
+    mainClass = "com.manhinhang.ibgatewaydocker.healthcheck.AppKt"
 }
