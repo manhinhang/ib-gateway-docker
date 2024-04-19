@@ -12,4 +12,4 @@ plugins {
 }
 
 rootProject.name = "heathcheck"
-include("app")
+include("heathcheck")
