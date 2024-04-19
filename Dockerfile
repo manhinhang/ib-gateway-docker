@@ -59,6 +59,7 @@ COPY ibc/config.ini ${IBC_INI}
 
 # install heathcheck tool
 ADD heathcheck/heathcheck/build/distributions/heathcheck.tar /
+ENV PATH="${PATH}:/heathcheck/heathcheck/bin"
 
 # copy cmd script
 WORKDIR /root
