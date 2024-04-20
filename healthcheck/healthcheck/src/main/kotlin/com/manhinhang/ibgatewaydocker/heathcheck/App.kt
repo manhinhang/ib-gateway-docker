@@ -7,8 +7,8 @@ import kotlin.system.exitProcess
 
 fun main() {
 
-    val clientId = (System.getenv("HEALTHCHECK_CLIENT_ID").toIntOrNull() ?: 999)
-    val port = (System.getenv("IB_GATEWAY_INTERNAL_PORT").toIntOrNull() ?: 4001)
+    val clientId = (System.getenv("HEALTHCHECK_CLIENT_ID")?.toIntOrNull() ?: 999)
+    val port = (System.getenv("IB_GATEWAY_INTERNAL_PORT")?.toIntOrNull() ?: 4001)
     val signal = EJavaSignal();
     val client = EClientSocket(Wrapper(), signal)
     client.eConnect("localhost", port, clientId)
@@ -17,8 +17,10 @@ fun main() {
     Thread {
         while (client.isConnected) {
             client.eDisconnect()
+            println("Ping IB Gateway successful")
             exitProcess(0)
         }
-        exitProcess(-1)
+        println("Can not connect to IB Gateway")
+        exitProcess(1)
     }.start()
 }

@@ -20,8 +20,7 @@ def ib_docker():
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-p', '4002:4002',
-        '-d', IMAGE_NAME, 
-        "tail", "-f", "/dev/null"]).decode().strip()
+        '-d', IMAGE_NAME]).decode().strip()
     yield docker_id
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 

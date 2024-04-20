@@ -38,13 +38,17 @@ jobs:
         pip install pytest
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
     - name: Build Docker image
-      run: docker build -t $IMAGE_NAME .
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: ${{ env.IMAGE_NAME }}
     - name: Smoke tests container image
       run: pytest -x
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
-        TRADING_MODE: paper
+        TRADING_MODE: ${{ secrets.IB_PASSWORD }}
 
     - name: Run ib_insync example
       run: |
