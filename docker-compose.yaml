@@ -1,16 +1,17 @@
 services:
   ib-gateway:
-    image: manhinhang/ib-gateway-docker
+    build:
+      context: .
     ports:
       - 4002:4002
     environment:
       - IB_ACCOUNT=$IB_ACCOUNT
       - IB_PASSWORD=$IB_PASSWORD
       - TRADING_MODE=$TRADING_MODE
-secrets:
-  IB_ACCOUNT:
-    environment: "IB_ACCOUNT"
-  IB_PASSWORD:
-    environment: "IB_PWD"
-  TRADING_MODE:
-    environment: "TRADING_MODE"
+    healthcheck:
+        test: /healthcheck/bin/healthcheck
+        interval: 60s
+        timeout: 30s
+        retries: 3
+        start_period: 60s
+

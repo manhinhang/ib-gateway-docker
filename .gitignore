@@ -2,3 +2,4 @@
 .secrets
 .env
 .vscode
+healthcheck/healthcheck/src/main/java

@@ -59,7 +59,7 @@ COPY ibc/config.ini ${IBC_INI}
 
 # install healthcheck tool
 ADD healthcheck/healthcheck/build/distributions/healthcheck.tar /
-ENV PATH="${PATH}:/healthcheck/healthcheck/bin"
+ENV PATH="${PATH}:/healthcheck/bin"
 
 # copy cmd script
 WORKDIR /root
