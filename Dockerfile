@@ -84,6 +84,7 @@ COPY --from=ibgw /javaruntime $JAVA_HOME
 COPY --from=dependencies / /
 COPY --from=ibgw /opt/ibc /opt/ibc
 COPY --from=ibgw /root/Jts /root/Jts
+COPY --from=ibgw /root/ibc /root/ibc
 
 # install healthcheck tool
 ADD healthcheck/healthcheck/build/distributions/healthcheck.tar /
