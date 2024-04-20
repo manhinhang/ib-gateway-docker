@@ -22,15 +22,14 @@ class IBGatewayClient {
         return client
     }
 
-    suspend fun connect():Boolean = withContext(Dispatchers.IO) {
+    private suspend fun connect():Boolean = withContext(Dispatchers.IO) {
         if (!client.isConnected) {
-            val client = createIBClient()
             client.eConnect(host, port, clientId)
         }
         client.isConnected
     }
 
-    fun disconnect() {
+    private fun disconnect() {
         client.eDisconnect()
     }
 
@@ -39,7 +38,7 @@ class IBGatewayClient {
             val isConnected = connect()
             if (isConnected) {
                 println("Ping IB Gateway successful")
-                client.eDisconnect()
+                disconnect()
             }else {
                 throw InterruptedException("Can not connect to IB Gateway")
             }
