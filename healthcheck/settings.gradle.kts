@@ -13,3 +13,4 @@ plugins {
 
 rootProject.name = "healthcheck"
 include("healthcheck")
+include("healthcheck-rest")
