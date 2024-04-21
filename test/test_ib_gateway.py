@@ -19,7 +19,7 @@ def test_healthcheck():
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-d', IMAGE_NAME]).decode().strip()
-    time.sleep(10)
+    time.sleep(30)
     assert subprocess.check_call(['docker', 'exec', docker_id, 'healthcheck']) == 0
     subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
@@ -36,7 +36,7 @@ def test_healthcheck_rest():
         '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-p', '8080:8080',
         '-d', IMAGE_NAME]).decode().strip()
-    time.sleep(10)
+    time.sleep(30)
     response = requests.get("http://127.0.0.1:8080/healthcheck")
     assert response.ok
     subprocess.check_call(['docker', 'rm', '-f', docker_id])

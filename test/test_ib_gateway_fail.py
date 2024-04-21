@@ -57,9 +57,11 @@ def test_ib_insync_connect_fail(host):
         pass
 
 def test_healthcheck_fail(host):
+    time.sleep(30)
     assert host.exists("healthcheck")
     assert host.run('/healthcheck/bin/healthcheck').rc == 1
 
 def test_healthcheck_rest_fail(host):
+    time.sleep(30)
     response = requests.get("http://127.0.0.1:8080/healthcheck")
     assert not response.ok
