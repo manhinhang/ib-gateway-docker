@@ -83,4 +83,4 @@ ENV IBGW_PORT 4002
 
 EXPOSE $IBGW_PORT
 
-ENTRYPOINT [ "sh", "/root/start.sh" ] 
+ENTRYPOINT [ "sh", "/root/start.sh" ]
