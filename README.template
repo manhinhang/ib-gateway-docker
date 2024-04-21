@@ -10,9 +10,9 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2l)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (###IB_GATEWAY_VER###)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.18.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (###IBC_VER###)
 
 ## Pull the Docker image from Docker Hub
 
@@ -52,74 +52,6 @@ ib-gateway-docker
 | Example | Link | Description |
 | - | - | - |
 | ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
-
-
-## Health check container
-
-### API
-
-Healthcheck via api call `http://localhost:8080/healthcheck`
-
-```bash
-curl -f http://localhost:8080/healthcheck
-```
-
-- Docker compose example
-
-```yaml
-services:
-  ib-gateway:
-    image: manhinhang/ib-gateway-docker
-    ports:
-      - 4002:4002
-    environment:
-      - IB_ACCOUNT=$IB_ACCOUNT
-      - IB_PASSWORD=$IB_PASSWORD
-      - TRADING_MODE=$TRADING_MODE
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
-        interval: 60s
-        timeout: 30s
-        retries: 3
-        start_period: 60s
-```
-
-### CLI 
-Execute `healthcheck` to detect IB gateway haelth status
-
-```bash
-healthcheck
-# output: Ping IB Gateway successful
-echo $?
-# output: 0
-```
-
-```bash
-healthcheck
-# output: Can not connect to IB Gateway
-echo $?
-# output: 1
-```
-
-- Docker compose example
-
-```yaml
-services:
-  ib-gateway:
-    image: manhinhang/ib-gateway-docker
-    ports:
-      - 4002:4002
-    environment:
-      - IB_ACCOUNT=$IB_ACCOUNT
-      - IB_PASSWORD=$IB_PASSWORD
-      - TRADING_MODE=$TRADING_MODE
-    healthcheck:
-        test: /healthcheck/bin/healthcheck
-        interval: 60s
-        timeout: 30s
-        retries: 3
-        start_period: 60s
-```
 
 # Tests
 

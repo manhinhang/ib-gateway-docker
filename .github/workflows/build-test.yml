@@ -1,6 +1,9 @@
 name: Build test
 on: 
   push:
+    branches:
+      - develop
+      - master
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
@@ -17,35 +20,51 @@ jobs:
     - uses: actions/checkout@master
     - name: Setup python
       uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: 17
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+    - name: Build healthcheck tool
+      working-directory: healthcheck
+      run: ./gradlew build
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
     - name: Build Docker image
-      run: docker build -t $IMAGE_NAME .
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: ${{ env.IMAGE_NAME }}
     - name: Smoke tests container image
       run: pytest -x
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
-        TRADE_MODE: paper
+        TRADING_MODE: paper
 
     - name: Run ib_insync example
       run: |
         docker run --rm \
         -e IB_ACCOUNT=$IB_ACCOUNT \
         -e IB_PASSWORD=$IB_PASSWORD \
-        -e TRADE_MODE=paper \
+        -e TRADING_MODE=paper \
         -p 4001:4002 \
         -d \
-        $IMAGE_NAME tail -f /dev/null;
+        $IMAGE_NAME;
         sleep 30;
         pip install ib_insync pandas;
         python examples/ib_insync/scripts/connect_gateway.py;
         docker stop $(docker ps -a -q)
       env:
-        TRADE_MODE: paper
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+        TRADING_MODE: paper
 

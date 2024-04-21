@@ -8,7 +8,8 @@ on:
         - '!hotfix/**'
         - '!bugfix/**' 
      tags:
-       - 'v*'
+       - '*'
+   workflow_dispatch:
 
 jobs:
   build:
@@ -16,11 +17,30 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@master
-      - name: build-push
-        uses: docker/build-push-action@v1
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_PASSWORD }}
-            repository: manhinhang/ib-gateway-docker
-            tag_with_ref: true
- 
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build healthcheck tool
+        working-directory: healthcheck
+        run: ./gradlew build
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: manhinhang/ib-gateway-docker
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

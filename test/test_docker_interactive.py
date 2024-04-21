@@ -8,22 +8,25 @@ import asyncio
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
 @pytest.fixture(scope='function')
-def ib_docker():
+def ib_docker(request):
     account = os.environ['IB_ACCOUNT']
     password = os.environ['IB_PASSWORD']
-    trade_mode = os.environ['TRADE_MODE']
+    trading_mode = os.environ['TRADING_MODE']
 
     # run a container
     docker_id = subprocess.check_output(
         ['docker', 'run', 
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
-        '--env', 'TRADE_MODE={}'.format(trade_mode),
+        '--env', 'TRADING_MODE={}'.format(trading_mode),
         '-p', '4002:4002',
-        '-d', IMAGE_NAME, 
-        "tail", "-f", "/dev/null"]).decode().strip()
+        '-d', IMAGE_NAME]).decode().strip()
+    
+    # at the end of the test suite, destroy the container
+    def remove_container():
+        subprocess.check_call(['docker', 'rm', '-f', docker_id])
+    request.addfinalizer(remove_container)
     yield docker_id
-    subprocess.check_call(['docker', 'rm', '-f', docker_id])
 
 
 def test_ibgw_interactive(ib_docker):
