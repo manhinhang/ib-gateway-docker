@@ -3,7 +3,7 @@ set -e
 
 echo "Starting Xvfb..."
 rm -f /tmp/.X0-lock
-/usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR &
+/usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR >&1 &
 
 echo "Waiting for Xvfb to be ready..."
 while ! xdpyinfo -display "$DISPLAY"; do
@@ -14,7 +14,7 @@ done
 echo "Xvfb is ready"
 echo "Setup port forwarding..."
 
-socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever &
+socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever >&1 &
 echo "*****************************"
 
 # python /root/bootstrap.py
@@ -48,6 +48,8 @@ set_java_heap() {
 # Java heap size
 set_java_heap
 
+# start rest api for healthcheck
+healthcheck-rest-boot >&1 &
 
 ${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
