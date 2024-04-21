@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 as dependencies
+FROM debian:bookworm-slim as dependencies
 
 # install dependencies
 RUN  apt-get update \
@@ -55,9 +55,6 @@ RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 RUN touch $TWS_INSTALL_LOG
 RUN /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_MAJOR}${IB_GATEWAY_MINOR}
 
-# remove downloaded files
-RUN rm /tmp/ibgw.sh /tmp/IBC.zip
-
 # Create a custom Java runtime
 RUN $JAVA_HOME/bin/jlink \
          --add-modules java.base \
@@ -70,7 +67,7 @@ RUN $JAVA_HOME/bin/jlink \
 # copy IBC/Jts configs
 COPY ibc/config.ini ${IBC_INI}
 
-FROM ubuntu:24.04
+FROM debian:bookworm-slim
 
 USER root
 
@@ -79,30 +76,20 @@ ENV IBC_INI=/root/ibc/config.ini
 ENV IBC_PATH=/opt/ibc
 ENV TWS_PATH=/root/Jts
 ENV TWOFA_TIMEOUT_ACTION=restart
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH "${JAVA_HOME}/bin:${PATH}"
-
-# RUN  apt-get update \
-#     && apt-get upgrade -y \
-#     && apt-get install -y \
-#     xvfb \
-#     libxtst6 \
-#     libxrender1 \
-#     net-tools \
-#     x11-utils \
-#     socat \
-#     procps \
-#     xterm
+# ENV JAVA_HOME=/opt/java/openjdk
+# ENV PATH "${JAVA_HOME}/bin:${PATH}"
 
 RUN mkdir -p /opt/ibc
 RUN mkdir -p /root/Jts
 RUN mkdir -p /root/ibc
 
-COPY --from=ibgw /javaruntime $JAVA_HOME
+# COPY --from=ibgw /javaruntime $JAVA_HOME
 COPY --from=dependencies / /
 COPY --from=ibgw /opt/ibc /opt/ibc
 COPY --from=ibgw /root/Jts /root/Jts
 COPY --from=ibgw /root/ibc /root/ibc
+
+RUN apt install -y openjdk-17-jre
 
 # install healthcheck tool
 ADD healthcheck/healthcheck/build/distributions/healthcheck.tar /
