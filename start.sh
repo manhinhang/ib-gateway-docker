@@ -33,6 +33,22 @@ cleanup() {
 trap 'cleanup' INT TERM
 echo "IB gateway starting..."
 
+set_java_heap() {
+	# set java heap size in vm options
+	if [ -n "${JAVA_HEAP_SIZE}" ]; then
+		_vmpath="${TWS_PATH}/ibgateway/${IB_GATEWAY_VERSION}"
+		_string="s/-Xmx([0-9]+)m/-Xmx${JAVA_HEAP_SIZE}m/g"
+		sed -i -E "${_string}" "${_vmpath}/ibgateway.vmoptions"
+		echo "Java heap size set to ${JAVA_HEAP_SIZE}m"
+	else
+		echo "Usign default Java heap size."
+	fi
+}
+
+# Java heap size
+set_java_heap
+
+
 ${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
