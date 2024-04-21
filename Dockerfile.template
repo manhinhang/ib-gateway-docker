@@ -73,6 +73,9 @@ COPY --from=downloader /root/ibc /root/ibc
 ADD healthcheck/healthcheck/build/distributions/healthcheck.tar /
 ENV PATH="${PATH}:/healthcheck/bin"
 
+ADD healthcheck/healthcheck-rest/build/distributions/healthcheck-rest-boot.tar /
+ENV PATH="${PATH}:/healthcheck-rest-boot/bin"
+
 # copy cmd script
 WORKDIR /root
 COPY start.sh /root/start.sh

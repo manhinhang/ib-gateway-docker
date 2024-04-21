@@ -3,6 +3,7 @@ import subprocess
 import testinfra
 import os
 import time
+import requests
 from ib_insync import IB, util, Forex
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
@@ -21,6 +22,7 @@ def host(request):
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
+        '-p', '8080:8080',
         '-d', IMAGE_NAME]).decode().strip()
     
     # at the end of the test suite, destroy the container
@@ -55,5 +57,11 @@ def test_ib_insync_connect_fail(host):
         pass
 
 def test_healthcheck_fail(host):
+    time.sleep(30)
     assert host.exists("healthcheck")
     assert host.run('/healthcheck/bin/healthcheck').rc == 1
+
+def test_healthcheck_rest_fail(host):
+    time.sleep(30)
+    response = requests.get("http://127.0.0.1:8080/healthcheck")
+    assert not response.ok
