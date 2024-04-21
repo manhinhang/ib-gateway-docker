@@ -1,9 +1,7 @@
 FROM debian:bookworm-slim as downloader
-# IBC Version : https://github.com/IbcAlpha/IBC/releases
-ARG IBC_VER="3.18.0"
-ARG IBC_ASSET_URL="https://github.com/IbcAlpha/IBC/releases/download/3.18.0-Update.1/IBCLinux-3.18.0.zip"
 
 # set environment variables
+ENV IBC_VERSION_JSON_URL="https://api.github.com/repos/IbcAlpha/IBC/releases"
 ENV IBC_INI=/root/ibc/config.ini \
     IBC_PATH=/opt/ibc
 
@@ -12,6 +10,8 @@ RUN  apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y wget \
   unzip
+RUN apt install -y jq curl
+
 # make dirs
 RUN mkdir -p /tmp
 
@@ -20,7 +20,8 @@ RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
-RUN wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL}
+RUN IBC_ASSET_URL=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0].assets[]|select(.name | test("IBCLinux*")).browser_download_url') && \
+wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL}
 RUN unzip /tmp/IBC.zip -d ${IBC_PATH}
 RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 
