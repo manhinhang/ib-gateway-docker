@@ -49,7 +49,7 @@ set_java_heap() {
 set_java_heap
 
 # start rest api for healthcheck
-healthcheck-rest-boot >&1 &
+healthcheck-rest >&1 &
 
 ${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
