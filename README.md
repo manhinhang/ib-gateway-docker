@@ -56,6 +56,35 @@ ib-gateway-docker
 
 ## Health check container
 
+### API
+
+Healthcheck via api call `http://localhost:8080/healthcheck`
+
+```bash
+curl -f http://localhost:8080/healthcheck
+```
+
+- Docker compose example
+
+```yaml
+services:
+  ib-gateway:
+    image: manhinhang/ib-gateway-docker
+    ports:
+      - 4002:4002
+    environment:
+      - IB_ACCOUNT=$IB_ACCOUNT
+      - IB_PASSWORD=$IB_PASSWORD
+      - TRADING_MODE=$TRADING_MODE
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+        interval: 60s
+        timeout: 30s
+        retries: 3
+        start_period: 60s
+```
+
+### CLI 
 Execute `healthcheck` to detect IB gateway haelth status
 
 ```bash
