@@ -34,7 +34,6 @@ trap 'cleanup' INT TERM
 echo "IB gateway starting..."
 
 ${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
-     "--tws-path=${TWS_PATH}" \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
