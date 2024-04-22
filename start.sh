@@ -6,7 +6,7 @@ rm -f /tmp/.X0-lock
 /usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR >&1 &
 
 echo "Waiting for Xvfb to be ready..."
-XVFB_TIMEOUT=20
+XVFB_TIMEOUT=120
 XVFB_WAITING_TIME=0
 while ! xdpyinfo -display "$DISPLAY"; do
   echo -n ''
