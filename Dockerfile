@@ -81,6 +81,9 @@ COPY --from=downloader /tmp/ibgw.sh /tmp/ibgw.sh
 COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
 RUN IB_GATEWAY_VERSION=$(cat /tmp/ibgw-version) && \
 /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
+# remove files
+RUN rm /tmp/ibgw.sh
+RUN rm /tmp/ibgw-version
 
 COPY --from=downloader /opt/ibc /opt/ibc
 COPY --from=downloader /root/ibc /root/ibc
@@ -104,8 +107,5 @@ ENV IBGW_PORT 4002
 ENV JAVA_HEAP_SIZE 768
 
 EXPOSE $IBGW_PORT
-
-# remove downloaded files
-RUN rm -rf /tmp
 
 ENTRYPOINT [ "sh", "/root/start.sh" ]
