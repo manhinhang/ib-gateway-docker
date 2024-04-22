@@ -40,6 +40,7 @@ cleanup() {
 #Trap TERM
 trap 'cleanup' INT TERM
 echo "IB gateway starting..."
+IB_GATEWAY_VERSION=$(ls $TWS_PATH/ibgateway)
 
 set_java_heap() {
 	# set java heap size in vm options
@@ -59,11 +60,9 @@ set_java_heap
 # start rest api for healthcheck
 healthcheck-rest >&1 &
 
-IBGW_VERSION=$(ls $TWS_PATH/ibgateway)
-
 echo "detect IB gateway version: $IBGW_VERSION"
 
-${IBC_PATH}/scripts/ibcstart.sh "$IBGW_VERSION" -g \
+${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
