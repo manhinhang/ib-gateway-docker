@@ -51,7 +51,11 @@ set_java_heap
 # start rest api for healthcheck
 healthcheck-rest >&1 &
 
-${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
+IBGW_VERSION=$(ls $TWS_PATH/ibgateway)
+
+echo "detect IB gateway version: $IBGW_VERSION"
+
+${IBC_PATH}/scripts/ibcstart.sh "$IBGW_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"

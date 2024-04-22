@@ -1,3 +1,4 @@
+######## Downloader ########
 FROM debian:bookworm-slim as downloader
 
 # set environment variables
@@ -28,6 +29,12 @@ RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 # copy IBC/Jts configs
 COPY ibc/config.ini ${IBC_INI}
 
+# Extract IB Gateway version
+RUN curl "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
+grep -Po '[^ibgatewaystable_callback(](.+})' | \
+jq -r .buildVersion > /tmp/ibgw-version
+
+######## healthcheck tools ########
 # temp container to build using gradle
 FROM gradle:8.7.0-jdk17 AS healthcheck-tools
 ENV APP_HOME=/usr/app/
@@ -41,9 +48,9 @@ RUN mkdir -p $APP_HOME/build
 RUN unzip healthcheck/build/distributions/healthcheck.zip -d $APP_HOME/build
 RUN unzip healthcheck-rest/build/distributions/healthcheck-rest-boot.zip -d $APP_HOME/build
 
+######## FINAL ########
+
 FROM debian:bookworm-slim
-ARG IB_GATEWAY_MAJOR="10"
-ARG IB_GATEWAY_MINOR="19"
 
 # install dependencies
 RUN  apt-get update \
@@ -64,20 +71,16 @@ ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     IBC_INI=/root/ibc/config.ini \
     IBC_PATH=/opt/ibc \
     TWS_PATH=/root/Jts \
-    TWOFA_TIMEOUT_ACTION=restart \
-    IB_GATEWAY_MAJOR=${IB_GATEWAY_MAJOR} \
-    IB_GATEWAY_MINOR=${IB_GATEWAY_MINOR} \
-    IB_GATEWAY_VERSION=${IB_GATEWAY_MAJOR}${IB_GATEWAY_MINOR}
+    TWOFA_TIMEOUT_ACTION=restart
 
 # make dirs
 RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH} && mkdir -p /healthcheck
 
 # download IB TWS
 COPY --from=downloader /tmp/ibgw.sh /tmp/ibgw.sh
-
-RUN /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
-# remove downloaded files
-RUN rm /tmp/ibgw.sh
+COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
+RUN IB_GATEWAY_VERSION=$(cat /tmp/ibgw-version) && \
+/tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
 
 COPY --from=downloader /opt/ibc /opt/ibc
 COPY --from=downloader /root/ibc /root/ibc
@@ -101,5 +104,8 @@ ENV IBGW_PORT 4002
 ENV JAVA_HEAP_SIZE 768
 
 EXPOSE $IBGW_PORT
+
+# remove downloaded files
+RUN rm -rf /tmp
 
 ENTRYPOINT [ "sh", "/root/start.sh" ]
