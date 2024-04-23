@@ -39,6 +39,8 @@ jobs:
             echo "New IBC version($IBC_VER)"
             echo has_update=true >> "$GITHUB_OUTPUT"
         fi
+        echo "ib-gateway-ver=$IB_GATEWAY_VER" >> "$GITHUB_OUTPUT"
+        echo "ibc-ver=$IBC_VER" >> "$GITHUB_OUTPUT"
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
