@@ -21,7 +21,7 @@ jobs:
       run: |
         IB_GATEWAY_VER=$(curl "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
         grep -Eo '[^ibgatewaystable_callback(](.+})' | jq -r '.buildVersion')
-        IBC_VER=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0])
+        IBC_VER=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0].name')
         source .env
 
         if [ "$IB_GATEWAY_VER" = "$CUR_IB_GATEWAY_VER" ]; then
