@@ -54,7 +54,7 @@ jobs:
         git config advice.addIgnoredFile false
         git stash push README.md
         git pull
-        git checkout -b "$branch" origin/develop
+        git checkout -b "$branch" origin/refactor/remove-README-tmp
         # Update files
         git stash pop stash@{0} 
         echo "CUR_IB_GATEWAY_VER=${{ steps.check-update.outputs.ib-gateway-ver }}" > .env
@@ -65,4 +65,4 @@ jobs:
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
 
-        gh pr create --base develop --fill
+        gh pr create --base refactor/remove-README-tmp --fill
