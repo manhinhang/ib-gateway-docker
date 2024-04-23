@@ -42,7 +42,7 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
-        sed -e 's/###IB_GATEWAY_VER###/${{steps.check-update.outputs.ib-gateway-ver}}/g' -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/g' README.template > README.update
+        sed -i -E -e 's/(IB Gateway\]*\()([^)]+)(\))/\1${{steps.check-update.outputs.ib-gateway-ver}}\3/' -e 's/(IBC.*\()([^)]+)(\))/\1${{steps.check-update.outputs.ibc-ver}}\3/' README.md
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:
@@ -52,16 +52,15 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config advice.addIgnoredFile false
+        git stash push README.md
         git pull
         git checkout -b "$branch" origin/develop
         # Update files
-        cp README.update README.md
-        cp Dockerfile.update Dockerfile
+        git stash pop stash@{0} 
         echo "CUR_IB_GATEWAY_VER=${{ steps.check-update.outputs.ib-gateway-ver }}" > .env
         echo "CUR_IBC_VER=${{ steps.check-update.outputs.ibc-ver }}" >> .env
         #####
         git add README.md
-        git add Dockerfile
         git add -f .env
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
