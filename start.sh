@@ -6,9 +6,17 @@ rm -f /tmp/.X0-lock
 /usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR >&1 &
 
 echo "Waiting for Xvfb to be ready..."
+XVFB_TIMEOUT=120
+XVFB_WAITING_TIME=0
 while ! xdpyinfo -display "$DISPLAY"; do
   echo -n ''
-  sleep 0.1
+  sleep 1
+  XVFB_WAITING_TIME=$(($XVFB_WAITING_TIME+1))
+  echo "WAITING TIME: $XVFB_WAITING_TIME"
+  if [ "$XVFB_WAITING_TIME" -gt "$XVFB_TIMEOUT" ]; then
+    echo "Xvfb TIMED OUT"
+    exit 1
+  fi
 done
 
 echo "Xvfb is ready"
@@ -32,6 +40,7 @@ cleanup() {
 #Trap TERM
 trap 'cleanup' INT TERM
 echo "IB gateway starting..."
+IB_GATEWAY_VERSION=$(ls $TWS_PATH/ibgateway)
 
 set_java_heap() {
 	# set java heap size in vm options
@@ -51,7 +60,9 @@ set_java_heap
 # start rest api for healthcheck
 healthcheck-rest >&1 &
 
-${IBC_PATH}/scripts/ibcstart.sh "1019" -g \
+echo "detect IB gateway version: $IBGW_VERSION"
+
+${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
