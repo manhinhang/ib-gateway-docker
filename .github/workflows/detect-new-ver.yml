@@ -20,7 +20,7 @@ jobs:
       id: check-update
       run: |
         IB_GATEWAY_VER=$(curl "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
-        grep -Po '[^ibgatewaystable_callback(](.+})' | jq -r '.buildVersion')
+        grep -Eo '[^ibgatewaystable_callback(](.+})' | jq -r '.buildVersion')
         IBC_VER=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0])
         source .env
 
