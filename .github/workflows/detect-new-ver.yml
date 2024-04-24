@@ -14,8 +14,6 @@ jobs:
       IBC_VERSION_JSON_URL: "https://api.github.com/repos/IbcAlpha/IBC/releases"
     steps:
     - uses: actions/checkout@master
-    - name: Setup python
-      uses: actions/setup-python@v5
     - name: detect new ib gateway version
       id: check-update
       run: |
