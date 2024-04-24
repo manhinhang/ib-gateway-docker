@@ -18,14 +18,14 @@ jobs:
         include:
           # Dockerhub
           - images: manhinhang/ib-gateway-docker
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_PASSWORD }}
-            registry: 
+            username: DOCKERHUB_USERNAME
+            password: DOCKERHUB_PASSWORD
+            registry: ''
           # Github
           - images: ghcr.io/manhinhang/ib-gateway-docker
             username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-            registry: ghcr.io
+            password: GITHUB_TOKEN
+            registry: 'ghcr.io'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -39,8 +39,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ matrix.registry }}
-          username: ${{ matrix.username }}
-          password: ${{ matrix.password }}
+          username: ${{ matrix.registry == 'ghcr.io' && matrix.username || secrets[matrix.username] }}
+          password: ${{ secrets[matrix.password] }}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
