@@ -60,6 +60,8 @@ ib-gateway-docker
 
 Healthcheck via api call `http://localhost:8080/healthcheck`
 
+Config `HEALTHCHECK_API_ENABLE=true` in environment variable to enable API
+
 ```bash
 curl -f http://localhost:8080/healthcheck
 ```
@@ -76,6 +78,7 @@ services:
       - IB_ACCOUNT=$IB_ACCOUNT
       - IB_PASSWORD=$IB_PASSWORD
       - TRADING_MODE=$TRADING_MODE
+      - HEALTHCHECK_API_ENABLE=true
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
         interval: 60s

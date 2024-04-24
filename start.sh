@@ -58,7 +58,12 @@ set_java_heap() {
 set_java_heap
 
 # start rest api for healthcheck
-healthcheck-rest >&1 &
+if [ "$HEALTHCHECK_API_ENABLE" = true ] ; then
+  echo "starting healthcheck api..."
+  healthcheck-rest >&1 &
+else
+  echo "Skip starting healthcheck api"
+fi
 
 echo "detect IB gateway version: $IBGW_VERSION"
 
