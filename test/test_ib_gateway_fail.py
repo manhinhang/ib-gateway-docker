@@ -63,5 +63,8 @@ def test_healthcheck_fail(host):
 
 def test_healthcheck_rest_fail(host):
     time.sleep(30)
-    response = requests.get("http://127.0.0.1:8080/healthcheck")
-    assert not response.ok
+    try:
+        response = requests.get("http://127.0.0.1:8080/healthcheck")
+        assert False
+    except requests.exceptions.ConnectionError:
+        pass
