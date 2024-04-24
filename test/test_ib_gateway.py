@@ -34,6 +34,7 @@ def test_healthcheck_rest():
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
+        '--env', 'HEALTHCHECK_API_ENABLE=true',
         '-p', '8080:8080',
         '-d', IMAGE_NAME]).decode().strip()
     time.sleep(30)
