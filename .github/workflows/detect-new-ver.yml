@@ -26,10 +26,10 @@ jobs:
         if [ "$IB_GATEWAY_VER" = "$CUR_IB_GATEWAY_VER" ]; then
             echo "No new IB gateway version available"
             echo has_update=false >> "$GITHUB_OUTPUT"
-            HAS_UPDATE='true'
         else
             echo "New IB gateway version($IB_GATEWAY_VER)"
             echo has_update=true >> "$GITHUB_OUTPUT"
+            HAS_UPDATE='true'
         fi
         if [ "$HAS_UPDATE" = 'false' ]; then
           if [ "$IBC_VER" = "$CUR_IBC_VER" ]; then
