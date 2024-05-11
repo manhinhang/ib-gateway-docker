@@ -22,21 +22,25 @@ jobs:
         IBC_VER=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0].name')
         source .env
 
+        HAS_UPDATE='false'
         if [ "$IB_GATEWAY_VER" = "$CUR_IB_GATEWAY_VER" ]; then
             echo "No new IB gateway version available"
             echo has_update=false >> "$GITHUB_OUTPUT"
+            HAS_UPDATE='true'
         else
             echo "New IB gateway version($IB_GATEWAY_VER)"
             echo has_update=true >> "$GITHUB_OUTPUT"
         fi
-
-        if [ "$IBC_VER" = "$CUR_IBC_VER" ]; then
+        if [ "$HAS_UPDATE" = 'false' ]; then
+          if [ "$IBC_VER" = "$CUR_IBC_VER" ]; then
             echo "No new IBC version available"
             echo has_update=false >> "$GITHUB_OUTPUT"
-        else
-            echo "New IBC version($IBC_VER) available"
-            echo has_update=true >> "$GITHUB_OUTPUT"
+          else
+              echo "New IBC version($IBC_VER) available"
+              echo has_update=true >> "$GITHUB_OUTPUT"
+          fi
         fi
+
         echo "ib-gateway-ver=$IB_GATEWAY_VER" >> "$GITHUB_OUTPUT"
         echo "ibc-ver=$IBC_VER" >> "$GITHUB_OUTPUT"
     - name: Update files with new version
