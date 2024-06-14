@@ -10,7 +10,7 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2n)
+- [IB Gateway](10.19.2o) (10.19.2n)
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.19.0)
 
