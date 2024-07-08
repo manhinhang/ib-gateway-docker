@@ -10,9 +10,9 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2l)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2o)
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.18.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.19.0)
 
 ## Pull the Docker image from Docker Hub
 
@@ -26,7 +26,7 @@ docker run -d \
 --env IB_ACCOUNT= \ #YOUR_USER_ID 
 --env IB_PASSWORD= \ #YOUR_PASSWORD  
 --env TRADING_MODE= \ #paper or live 
---p 4002:4002 \ #brige IB gateway port to your local port 4002
+-p 4002:4002 \ #brige IB gateway port to your local port 4002
 manhinhang/ib-gateway-docker
 ```
 
@@ -60,6 +60,8 @@ ib-gateway-docker
 
 Healthcheck via api call `http://localhost:8080/healthcheck`
 
+Config `HEALTHCHECK_API_ENABLE=true` in environment variable to enable API
+
 ```bash
 curl -f http://localhost:8080/healthcheck
 ```
@@ -76,6 +78,7 @@ services:
       - IB_ACCOUNT=$IB_ACCOUNT
       - IB_PASSWORD=$IB_PASSWORD
       - TRADING_MODE=$TRADING_MODE
+      - HEALTHCHECK_API_ENABLE=true
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
         interval: 60s
