@@ -53,6 +53,76 @@ ib-gateway-docker
 | - | - | - |
 | ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
 
+
+## Health check container
+
+### API
+
+Healthcheck via api call `http://localhost:8080/healthcheck`
+
+Config `HEALTHCHECK_API_ENABLE=true` in environment variable to enable API
+
+```bash
+curl -f http://localhost:8080/healthcheck
+```
+
+- Docker compose example
+
+```yaml
+services:
+  ib-gateway:
+    image: manhinhang/ib-gateway-docker
+    ports:
+      - 4002:4002
+    environment:
+      - IB_ACCOUNT=$IB_ACCOUNT
+      - IB_PASSWORD=$IB_PASSWORD
+      - TRADING_MODE=$TRADING_MODE
+      - HEALTHCHECK_API_ENABLE=true
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+        interval: 60s
+        timeout: 30s
+        retries: 3
+        start_period: 60s
+```
+### CLI 
+Execute `healthcheck` to detect IB gateway haelth status
+
+```bash
+healthcheck
+# output: Ping IB Gateway successful
+echo $?
+# output: 0
+```
+
+```bash
+healthcheck
+# output: Can not connect to IB Gateway
+echo $?
+# output: 1
+```
+
+- Docker compose example
+
+```yaml
+services:
+  ib-gateway:
+    image: manhinhang/ib-gateway-docker
+    ports:
+      - 4002:4002
+    environment:
+      - IB_ACCOUNT=$IB_ACCOUNT
+      - IB_PASSWORD=$IB_PASSWORD
+      - TRADING_MODE=$TRADING_MODE
+    healthcheck:
+        test: /healthcheck/bin/healthcheck
+        interval: 60s
+        timeout: 30s
+        retries: 3
+        start_period: 60s
+```
+
 # Tests
 
 The [test cases](test/test_ib_gateway.py) written with testinfra.
