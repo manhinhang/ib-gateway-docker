@@ -46,7 +46,7 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
-        sed -i -E -e 's/(IB Gateway\]*\()([^)]+)(\))/\1${{steps.check-update.outputs.ib-gateway-ver}}\3/' -e 's/(IBC.*\()([^)]+)(\))/\1${{steps.check-update.outputs.ibc-ver}}\3/' README.md
+        sed -e 's/###IB_GATEWAY_VER###/${{steps.check-update.outputs.ib-gateway-ver}}/' -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/' README.template > README.md
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:

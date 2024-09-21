@@ -10,7 +10,7 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2o)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2p)
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.20.0)
 
@@ -86,7 +86,6 @@ services:
         retries: 3
         start_period: 60s
 ```
-
 ### CLI 
 Execute `healthcheck` to detect IB gateway haelth status
 
