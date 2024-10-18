@@ -10,7 +10,7 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.19.2p)
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) (10.30.1l)
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.20.0)
 
@@ -70,21 +70,21 @@ curl -f http://localhost:8080/healthcheck
 
 ```yaml
 services:
-  ib-gateway:
-    image: manhinhang/ib-gateway-docker
-    ports:
-      - 4002:4002
-    environment:
-      - IB_ACCOUNT=$IB_ACCOUNT
-      - IB_PASSWORD=$IB_PASSWORD
-      - TRADING_MODE=$TRADING_MODE
-      - HEALTHCHECK_API_ENABLE=true
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
-        interval: 60s
-        timeout: 30s
-        retries: 3
-        start_period: 60s
+ ib-gateway:
+   image: manhinhang/ib-gateway-docker
+   ports:
+     - 4002:4002
+   environment:
+     - IB_ACCOUNT=$IB_ACCOUNT
+     - IB_PASSWORD=$IB_PASSWORD
+     - TRADING_MODE=$TRADING_MODE
+     - HEALTHCHECK_API_ENABLE=true
+   healthcheck:
+       test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+       interval: 60s
+       timeout: 30s
+       retries: 3
+       start_period: 60s
 ```
 ### CLI 
 Execute `healthcheck` to detect IB gateway haelth status
@@ -107,20 +107,20 @@ echo $?
 
 ```yaml
 services:
-  ib-gateway:
-    image: manhinhang/ib-gateway-docker
-    ports:
-      - 4002:4002
-    environment:
-      - IB_ACCOUNT=$IB_ACCOUNT
-      - IB_PASSWORD=$IB_PASSWORD
-      - TRADING_MODE=$TRADING_MODE
-    healthcheck:
-        test: /healthcheck/bin/healthcheck
-        interval: 60s
-        timeout: 30s
-        retries: 3
-        start_period: 60s
+ ib-gateway:
+   image: manhinhang/ib-gateway-docker
+   ports:
+     - 4002:4002
+   environment:
+     - IB_ACCOUNT=$IB_ACCOUNT
+     - IB_PASSWORD=$IB_PASSWORD
+     - TRADING_MODE=$TRADING_MODE
+   healthcheck:
+       test: /healthcheck/bin/healthcheck
+       interval: 60s
+       timeout: 30s
+       retries: 3
+       start_period: 60s
 ```
 
 # Tests
