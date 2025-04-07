@@ -58,7 +58,7 @@ jobs:
         git config advice.addIgnoredFile false
         git stash push README.md
         git pull
-        git checkout -b "$branch" origin/develop
+        git checkout -b "$branch" origin/master
         # Update files
         git stash pop stash@{0} 
         echo "CUR_IB_GATEWAY_VER=${{ steps.check-update.outputs.ib-gateway-ver }}" > .env
