@@ -81,4 +81,4 @@ jobs:
         git commit -m 'Update to `${{ steps.check-update.outputs.ib-gateway-ver }}`'
         git push --set-upstream origin "$branch"
 
-        gh pr create --base develop --fill
+        gh pr create --base master --fill
