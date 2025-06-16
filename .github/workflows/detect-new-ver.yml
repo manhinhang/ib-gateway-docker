@@ -53,6 +53,18 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         branch='feat/update-to-${{ steps.check-update.outputs.ib-gateway-ver }}-ibc${{steps.check-update.outputs.ibc-ver}}'
+        
+        # 检查并关闭已存在的PR
+        existing_pr=$(gh pr list --search "head:$branch" --json number --jq '.[0].number')
+        if [ ! -z "$existing_pr" ]; then
+          gh pr close $existing_pr
+        fi
+        
+        # 检查并删除已存在的分支
+        if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+          git push origin --delete "$branch"
+        fi
+        
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config advice.addIgnoredFile false
