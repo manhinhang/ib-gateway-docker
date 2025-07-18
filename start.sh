@@ -22,7 +22,7 @@ done
 echo "Xvfb is ready"
 echo "Setup port forwarding..."
 
-socat TCP-LISTEN:$IBGW_PORT,fork TCP:localhost:4001,forever >&1 &
+socat TCP-LISTEN:$IBGW_PORT,fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 TCP:localhost:4001,forever >&1 &
 echo "*****************************"
 
 # python /root/bootstrap.py
