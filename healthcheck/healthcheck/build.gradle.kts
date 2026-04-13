@@ -49,7 +49,16 @@ val unzipIbApiTask = tasks.register<Copy>("unzipIbApi") {
     into("${projectDir}/src/main/java")
 }
 unzipIbApiTask { dependsOn(downloadIbApiTask) }
-tasks.compileKotlin { dependsOn(unzipIbApiTask) }
+
+val generateWrapperTask = tasks.register<Exec>("generateWrapper") {
+    dependsOn(unzipIbApiTask)
+    workingDir(projectDir)
+    commandLine("bash", "${projectDir}/generate-wrapper.sh",
+        "${projectDir}/src/main/java/com/ib/client/EWrapper.java",
+        "${projectDir}/src/main/kotlin/com/manhinhang/ibgatewaydocker/healthcheck/Wrapper.kt")
+}
+
+tasks.compileKotlin { dependsOn(generateWrapperTask) }
 
 testing {
     suites {
