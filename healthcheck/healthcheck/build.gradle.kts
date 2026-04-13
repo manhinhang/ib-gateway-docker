@@ -27,11 +27,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
 }
 
+val ibApiUrl = project.findProperty("ibApiUrl")?.toString()
+    ?: "https://interactivebrokers.github.io/downloads/twsapi_macunix.1045.01.zip"
+
 val downloadIbApiTask = tasks.register<org.jetbrains.kotlin.de.undercouch.gradle.tasks.download.Download>("downloadIbApi") {
     onlyIf("ibapi.zip not found") {
         !File("${layout.buildDirectory.asFile.get().path}/ibapi.zip").exists()
     }
-    src("https://interactivebrokers.github.io/downloads/twsapi_macunix.1019.04.zip")
+    src(ibApiUrl)
     dest("${layout.buildDirectory.asFile.get().path}/ibapi.zip")
 }
 

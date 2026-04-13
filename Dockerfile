@@ -42,8 +42,14 @@ FROM gradle:8.7.0-jdk17 AS healthcheck-tools
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY healthcheck $APP_HOME
-  
-RUN gradle clean build
+COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
+
+# Derive IBAPI URL from gateway version (e.g., 10.45.1c → twsapi_macunix.1045.01.zip)
+RUN IB_VER=$(cat /tmp/ibgw-version) && \
+    MAJOR=$(echo $IB_VER | cut -d. -f1) && \
+    MINOR=$(echo $IB_VER | cut -d. -f2) && \
+    IB_API_URL="https://interactivebrokers.github.io/downloads/twsapi_macunix.${MAJOR}${MINOR}.01.zip" && \
+    gradle clean build -PibApiUrl=$IB_API_URL
 
 RUN mkdir -p $APP_HOME/build
 

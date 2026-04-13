@@ -33,6 +33,32 @@ jobs:
         context: .
         push: false
         tags: ${{ env.IMAGE_NAME }}
+    - name: Verify healthcheck inside container
+      run: |
+        CONTAINER_ID=$(docker run \
+          -e IB_ACCOUNT=$IB_ACCOUNT \
+          -e IB_PASSWORD=$IB_PASSWORD \
+          -e TRADING_MODE=paper \
+          -d $IMAGE_NAME)
+        echo "Container started: $CONTAINER_ID"
+        # Wait for IB Gateway to be ready (poll healthcheck with retries)
+        for i in $(seq 1 12); do
+          echo "Healthcheck attempt $i/12..."
+          if docker exec $CONTAINER_ID healthcheck 2>/dev/null; then
+            echo "Healthcheck passed"
+            docker rm -f $CONTAINER_ID
+            exit 0
+          fi
+          sleep 10
+        done
+        echo "Healthcheck failed after 120 seconds"
+        docker logs $CONTAINER_ID
+        docker rm -f $CONTAINER_ID
+        exit 1
+      env:
+        IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
+        IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+
     - name: Smoke tests container image
       run: pytest -x
       env:
