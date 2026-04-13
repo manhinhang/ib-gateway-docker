@@ -1,4 +1,6 @@
 FROM debian:bookworm-slim as downloader
+
+ARG CHANNEL=latest
 # IBC Version : https://github.com/IbcAlpha/IBC/releases
 ARG IBC_VER="###IBC_VER###"
 ARG IBC_ASSET_URL="###IBC_ASSET_URL###"
@@ -16,7 +18,7 @@ RUN  apt-get update \
 RUN mkdir -p /tmp
 
 # download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/ibgateway-stable-standalone-linux-x64.sh
+RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC

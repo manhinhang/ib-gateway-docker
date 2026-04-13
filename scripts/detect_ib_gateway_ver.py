@@ -3,7 +3,7 @@ import json
 import re
 
 if __name__ == "__main__":
-    url = "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json"
+    url = "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json"
     regex = r"([^(]+)\)"
     response = requests.get(url)
     response_text = response.text

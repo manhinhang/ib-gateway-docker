@@ -15,17 +15,18 @@ jobs:
   build:
     strategy:
       matrix:
-        include:
+        channel: [stable, latest]
+        registry:
           # Dockerhub
           - images: manhinhang/ib-gateway-docker
             username: DOCKERHUB_USERNAME
             password: DOCKERHUB_PASSWORD
-            registry: ''
+            url: ''
           # Github
           - images: ghcr.io/manhinhang/ib-gateway-docker
             username: ${{ github.actor }}
             password: GITHUB_TOKEN
-            registry: 'ghcr.io'
+            url: 'ghcr.io'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -34,17 +35,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.images }}
+          images: ${{ matrix.registry.images }}
+          tags: |
+            type=raw,value=${{ matrix.channel }}
+            type=raw,value=${{ matrix.channel }}-{{date 'YYYYMMDD'}},enable={{is_default_branch}}
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ matrix.registry }}
-          username: ${{ matrix.registry == 'ghcr.io' && matrix.username || secrets[matrix.username] }}
-          password: ${{ secrets[matrix.password] }}
+          registry: ${{ matrix.registry.url }}
+          username: ${{ matrix.registry.url == 'ghcr.io' && matrix.registry.username || secrets[matrix.registry.username] }}
+          password: ${{ secrets[matrix.registry.password] }}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
+          build-args: CHANNEL=${{ matrix.channel }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

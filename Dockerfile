@@ -1,6 +1,8 @@
 ######## Downloader ########
 FROM debian:bookworm-slim as downloader
 
+ARG CHANNEL=latest
+
 # set environment variables
 ENV IBC_VERSION_JSON_URL="https://api.github.com/repos/IbcAlpha/IBC/releases"
 ENV IBC_INI=/root/ibc/config.ini \
@@ -17,7 +19,7 @@ RUN apt install -y jq curl
 RUN mkdir -p /tmp
 
 # download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/ibgateway-stable-standalone-linux-x64.sh
+RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh
 RUN chmod +x /tmp/ibgw.sh
 
 # download IBC
@@ -30,9 +32,9 @@ RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 COPY ibc/config.ini ${IBC_INI}
 
 # Extract IB Gateway version
-RUN curl "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
-grep -Po '[^ibgatewaystable_callback(](.+})' | \
-jq -r .buildVersion > /tmp/ibgw-version
+RUN curl "https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/version.json" | \
+grep -Po '"buildVersion"\s*:\s*"\K[^"]+' | \
+head -1 > /tmp/ibgw-version
 
 ######## healthcheck tools ########
 # temp container to build using gradle
