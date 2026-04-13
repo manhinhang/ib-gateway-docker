@@ -54,7 +54,7 @@ def convert_type(java_type):
     if java_type.startswith('Map<'):
         inner = java_type[4:-1]
         # Handle Map<Integer, Entry<String, Character>>
-        return f'MutableMap<{inner}>?'.replace('Integer', 'Int').replace('Character', 'Char')
+        return f'MutableMap<{inner}>?'.replace('Integer', 'Int').replace('Character', 'Char').replace('Entry<', 'MutableMap.MutableEntry<')
     return java_type + '?'
 
 def convert_param(param):
