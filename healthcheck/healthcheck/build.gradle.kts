@@ -25,6 +25,7 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
+    implementation("com.google.protobuf:protobuf-java:4.29.5")
 }
 
 val ibApiUrl = project.findProperty("ibApiUrl")?.toString()
