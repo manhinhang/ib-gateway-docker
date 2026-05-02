@@ -117,4 +117,12 @@ ENV HEALTHCHECK_API_ENABLE=false
 
 EXPOSE $IBGW_PORT
 
-ENTRYPOINT [ "sh", "/root/start.sh" ]
+# Run as non-root. /root remains the working tree (TWS_PATH, IBC_INI, start.sh
+# all live there) but is now owned by the ibgw user. /tmp keeps its standard
+# 1777 mode so Xvfb can manage its lock files.
+RUN useradd -u 1000 -m -s /bin/bash ibgw \
+ && chown -R ibgw:ibgw /root /opt/ibc /healthcheck /healthcheck-rest \
+ && chmod 755 /root
+USER ibgw
+
+ENTRYPOINT [ "/root/start.sh" ]
