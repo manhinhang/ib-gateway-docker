@@ -3,10 +3,7 @@ name: "Publish Docker"
 on:
    push:
      branches:
-        - '*' 
-        - '!feature/**' 
-        - '!hotfix/**'
-        - '!bugfix/**' 
+       - master
      tags:
        - '*'
    workflow_dispatch:
