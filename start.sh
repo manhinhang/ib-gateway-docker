@@ -68,7 +68,16 @@ fi
 
 echo "detect IB gateway version: $IBGW_VERSION"
 
+# Inject credentials into the IBC config so they don't appear in
+# /proc/<pid>/cmdline (visible to any in-container 'ps').
+escape_sed_repl() {
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+sed -i "s|^IbLoginId=.*|IbLoginId=$(escape_sed_repl "${IB_ACCOUNT}")|" "${IBC_INI}"
+sed -i "s|^IbPassword=.*|IbPassword=$(escape_sed_repl "${IB_PASSWORD}")|" "${IBC_INI}"
+sed -i "s|^TradingMode=.*|TradingMode=$(escape_sed_repl "${TRADING_MODE}")|" "${IBC_INI}"
+unset IB_PASSWORD
+
 ${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
-     "--user=${IB_ACCOUNT}" "--pw=${IB_PASSWORD}" "--mode=${TRADING_MODE}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
