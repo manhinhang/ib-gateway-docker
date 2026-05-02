@@ -28,13 +28,15 @@ def test_healthcheck_api():
     password = os.environ['IB_PASSWORD']
     trading_mode = os.environ['TRADING_MODE']
 
-    # run a container
+    # SERVER_ADDRESS=0.0.0.0 opts into external exposure; the image now binds
+    # to 127.0.0.1 by default.
     docker_id = subprocess.check_output(
-        ['docker', 'run', 
+        ['docker', 'run',
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
         '--env', 'HEALTHCHECK_API_ENABLE=true',
+        '--env', 'SERVER_ADDRESS=0.0.0.0',
         '-p', '8080:8080',
         '-d', IMAGE_NAME]).decode().strip()
     time.sleep(30)
@@ -47,13 +49,13 @@ def test_healthcheck_api_fail():
     password = 'test'
     trading_mode = os.environ['TRADING_MODE']
 
-    # run a container
     docker_id = subprocess.check_output(
-        ['docker', 'run', 
+        ['docker', 'run',
         '--env', 'IB_ACCOUNT={}'.format(account),
         '--env', 'IB_PASSWORD={}'.format(password),
         '--env', 'TRADING_MODE={}'.format(trading_mode),
         '--env', 'HEALTHCHECK_API_ENABLE=true',
+        '--env', 'SERVER_ADDRESS=0.0.0.0',
         '-p', '8080:8080',
         '-d', IMAGE_NAME]).decode().strip()
     time.sleep(30)
