@@ -117,12 +117,15 @@ ENV HEALTHCHECK_API_ENABLE=false
 
 EXPOSE $IBGW_PORT
 
-# Run as non-root. /root remains the working tree (TWS_PATH, IBC_INI, start.sh
-# all live there) but is now owned by the ibgw user. /tmp keeps its standard
-# 1777 mode so Xvfb can manage its lock files.
-RUN useradd -u 1000 -m -s /bin/bash ibgw \
+# Run as non-root. Use /root as $HOME so IBC's TWS_SETTINGS_PATH (derived
+# from $HOME/Jts) lands where TWS was installed during the build. Pre-create
+# /tmp/.X11-unix with 1777 perms because Xvfb's transport refuses to mkdir
+# it when euid != 0.
+RUN useradd -u 1000 -d /root -s /bin/bash ibgw \
  && chown -R ibgw:ibgw /root /opt/ibc /healthcheck /healthcheck-rest \
- && chmod 755 /root
+ && chmod 755 /root \
+ && mkdir -p /tmp/.X11-unix \
+ && chmod 1777 /tmp/.X11-unix
 USER ibgw
 
 ENTRYPOINT [ "/root/start.sh" ]
