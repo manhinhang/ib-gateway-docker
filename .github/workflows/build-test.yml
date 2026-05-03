@@ -84,3 +84,11 @@ jobs:
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
         TRADING_MODE: paper
 
+    - name: Stop and remove leftover containers
+      if: always()
+      run: |
+        leftovers=$(docker ps -aq)
+        if [ -n "$leftovers" ]; then
+          docker rm -f $leftovers
+        fi
+
