@@ -13,7 +13,7 @@ jobs:
       IMAGE_NAME: ib-gateway-docker
       IBC_VERSION_JSON_URL: "https://api.github.com/repos/IbcAlpha/IBC/releases"
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
     - name: detect new versions
       id: check-update
       run: |
