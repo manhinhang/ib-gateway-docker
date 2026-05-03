@@ -86,8 +86,10 @@ if [ ! -x "$RESTART_HELPER" ]; then
 fi
 
 echo "Pre-restart: $SERVICE is healthy (cid=$cid). Sending IBC RESTART..."
-restart_started_at_ns="$(date +%s%N)"
-restart_started_at_iso="$(date -u -d "@$(( restart_started_at_ns / 1000000000 ))" +%Y-%m-%dT%H:%M:%S.%3NZ)"
+# `docker logs --since` is second-precision, so capture seconds directly
+# rather than nanoseconds + divide (the previous version's `.%3NZ` always
+# produced .000Z because the integer division dropped subsecond bits).
+restart_started_at_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 "$RESTART_HELPER"
 
 # IBC's RESTART is async: it sets the auto-restart time to "now + ~1 min"

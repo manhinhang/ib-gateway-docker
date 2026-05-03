@@ -28,8 +28,12 @@ fi
 
 printf 'RESTART\n' >&3
 # Read whatever IBC sends back (banner, ack, or nothing depending on
-# CommandPrompt and SuppressInfoMessages settings) for up to 2 seconds.
-timeout 2 cat <&3 || true
+# CommandPrompt and SuppressInfoMessages settings). Uses bash's builtin
+# `read -t` so it works on both Linux and macOS without depending on
+# GNU coreutils' `timeout` being on the host PATH.
+while IFS= read -t 2 -r line <&3; do
+    printf '%s\n' "$line"
+done
 exec 3<&-
 
 echo "Sent RESTART to IBC at $HOST:$PORT — IB Gateway is performing its soft restart."
