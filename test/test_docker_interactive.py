@@ -1,9 +1,8 @@
-import pytest
 import os
 import subprocess
-import time
+
+import pytest
 from ib_insync import IB, util, Forex
-import asyncio
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
@@ -29,52 +28,46 @@ def ib_docker(request):
     yield docker_id
 
 
-def test_ibgw_interactive(ib_docker):
-    ib = IB()
-    wait = 120
-    while not ib.isConnected():
+CONNECT_RETRY_EXCEPTIONS = (
+    ConnectionError, ConnectionRefusedError, OSError, TimeoutError,
+)
+
+
+def _connect_with_retry(ib, host, port, client_id, wait_seconds):
+    """Poll-connect to the gateway until it accepts or `wait_seconds` elapse."""
+    while not ib.isConnected() and wait_seconds > 0:
         try:
             IB.sleep(1)
-            ib.connect('localhost', 4002, clientId=999)
-        except:
+            ib.connect(host, port, clientId=client_id)
+        except CONNECT_RETRY_EXCEPTIONS:
             pass
-        wait -= 1
-        if wait <= 0:
-            break
-    
+        wait_seconds -= 1
+
+
+def test_ibgw_interactive(ib_docker):
+    ib = IB()
+    _connect_with_retry(ib, 'localhost', 4002, client_id=998, wait_seconds=120)
+
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
         contract, endDateTime='', durationStr='30 D',
         barSizeSetting='1 hour', whatToShow='MIDPOINT', useRTH=True)
 
-    # convert to pandas dataframe:
-    df = util.df(bars)
-    print(df)
-    
-def test_ibgw_restart(ib_docker):
+    print(util.df(bars))
 
+
+def test_ibgw_restart(ib_docker):
     subprocess.check_output(
         ['docker', 'container', 'stop', ib_docker]).decode().strip()
     subprocess.check_output(
         ['docker', 'container', 'start', ib_docker]).decode().strip()
-    
+
     ib = IB()
-    wait = 60
-    while not ib.isConnected():
-        try:
-            IB.sleep(1)
-            ib.connect('localhost', 4002, clientId=999)
-        except:
-            pass
-        wait -= 1
-        if wait <= 0:
-            break
-    
+    _connect_with_retry(ib, 'localhost', 4002, client_id=998, wait_seconds=60)
+
     contract = Forex('EURUSD')
     bars = ib.reqHistoricalData(
         contract, endDateTime='', durationStr='30 D',
         barSizeSetting='1 hour', whatToShow='MIDPOINT', useRTH=True)
 
-    # convert to pandas dataframe:
-    df = util.df(bars)
-    print(df)
+    print(util.df(bars))

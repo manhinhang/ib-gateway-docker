@@ -1,10 +1,10 @@
-import pytest
-import subprocess
-import testinfra
 import os
-import time
+import subprocess
+
+import pytest
 import requests
-from ib_insync import IB, util, Forex
+import testinfra
+from ib_insync import IB, Forex
 
 IMAGE_NAME = os.environ['IMAGE_NAME']
 
@@ -35,36 +35,35 @@ def host(request):
 
 
 def test_ib_insync_connect_fail(host):
-    try:
-        ib = IB()
-        wait = 60
-        while not ib.isConnected():
-            try:
-                IB.sleep(1)
-                ib.connect('localhost', 4002, clientId=999)
-            except:
-                pass
-            wait -= 1
-            if wait <= 0:
-                break
-        
-        contract = Forex('EURUSD')
-        bars = ib.reqHistoricalData(
+    """With invalid credentials, ib_insync should never connect and
+    historical-data requests should error."""
+    ib = IB()
+    wait = 60
+    while not ib.isConnected() and wait > 0:
+        try:
+            IB.sleep(1)
+            ib.connect('localhost', 4002, clientId=998)
+        except (ConnectionError, ConnectionRefusedError, OSError, TimeoutError):
+            pass
+        wait -= 1
+
+    contract = Forex('EURUSD')
+    with pytest.raises(Exception):
+        ib.reqHistoricalData(
             contract, endDateTime='', durationStr='30 D',
             barSizeSetting='1 hour', whatToShow='MIDPOINT', useRTH=True)
-        assert False
-    except:
-        pass
+
 
 def test_healthcheck_fail(host):
-    time.sleep(30)
+    # The healthcheck binary is shipped in the image at build time, so it's
+    # always present immediately. With bad creds the gateway never opens 4001
+    # and the CLI exits 1 fast — no sleep needed.
     assert host.exists("healthcheck")
     assert host.run('/healthcheck/bin/healthcheck').rc == 1
 
+
 def test_healthcheck_rest_fail(host):
-    time.sleep(30)
-    try:
-        response = requests.get("http://127.0.0.1:8080/healthcheck")
-        assert False
-    except requests.exceptions.ConnectionError:
-        pass
+    # HEALTHCHECK_API_ENABLE is not set in this fixture, so port 8080 is not
+    # bound. We expect ConnectionError (or refused) immediately.
+    with pytest.raises(requests.exceptions.RequestException):
+        requests.get("http://127.0.0.1:8080/healthcheck", timeout=2)
