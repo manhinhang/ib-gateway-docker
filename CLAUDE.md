@@ -222,6 +222,17 @@ docker compose -f docker-compose.multi.yaml up -d
 # paper → localhost:4002, live → localhost:4001
 ```
 
+### Running on Kubernetes
+
+Plain-YAML manifests for both single and multi-gateway are in
+[`examples/k8s/`](examples/k8s/), with a k3d-based local verification
+helper at [`scripts/k8s/k3d-up.sh`](scripts/k8s/k3d-up.sh). The compose
+multi setup's per-service `IBGW_INTERNAL_PORT` and
+`IBC_COMMAND_SERVER_PORT` overrides do **not** transfer — those exist
+only because `network_mode: host` makes paper and live share the host's
+loopback. Each k8s pod has its own network namespace, so both pods keep
+upstream defaults inside themselves and only `IBGW_PORT` differs.
+
 ### Running Tests
 
 Tests use **pytest** and **testinfra**:

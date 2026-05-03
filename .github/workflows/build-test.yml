@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       IMAGE_NAME: ib-gateway-docker
     steps:
@@ -89,6 +89,72 @@ jobs:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
         TRADING_MODE: paper
+
+    # ── k8s: stand up a k3d cluster, deploy examples/k8s/single.yaml,
+    # and confirm the pod reaches Ready (which transitively confirms the
+    # /healthcheck/bin/healthcheck probe passes — same contract as the
+    # docker-exec healthcheck step above, but exercising the StatefulSet,
+    # Secret, PVC, and seed-jts initContainer wiring).
+    - name: Set up k3d
+      run: |
+        # Pinned to the v5.7.5 install.sh by commit SHA — protects against
+        # main-branch compromise of the script even though TAG is also
+        # pinned below. -f makes curl fail on HTTP errors instead of piping
+        # an empty body to bash; -L follows the GitHub raw redirect.
+        curl -fsSL \
+          "https://raw.githubusercontent.com/k3d-io/k3d/b1c64bcb459e266b92ff1d0820a62a6541b1efb5/install.sh" \
+          | TAG=v5.7.5 bash
+        k3d version
+        kubectl version --client
+
+    - name: Create k3d cluster
+      run: |
+        k3d cluster create ib-gateway-ci \
+          --no-lb --servers 1 --agents 0 --wait
+
+    - name: Import image into k3d
+      run: k3d image import "$IMAGE_NAME" -c ib-gateway-ci
+
+    - name: Apply manifests with real credentials
+      run: |
+        # Swap the image tag in the manifest to the locally-built CI image.
+        sed -E "s|image: manhinhang/ib-gateway-docker:latest|image: ${IMAGE_NAME}|g" \
+          examples/k8s/single.yaml \
+          | kubectl apply -f -
+        # Replace the REPLACE_ME Secret with real paper credentials.
+        kubectl -n ib-gateway create secret generic ib-gateway \
+          --from-literal=IB_ACCOUNT="$IB_ACCOUNT" \
+          --from-literal=IB_PASSWORD="$IB_PASSWORD" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        # Pick up the new Secret values.
+        kubectl -n ib-gateway rollout restart statefulset/ib-gateway
+      env:
+        IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
+        IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
+
+    - name: Wait for rollout to complete
+      run: |
+        # rollout status is race-tolerant across rollout-restart pod
+        # recreation (kubectl wait pod/<name> can exit with "no matching
+        # resources found" during the brief window where the pod is
+        # deleted and not yet recreated). It also requires every replica
+        # to satisfy the readiness probe — same /healthcheck/bin/healthcheck
+        # binary the docker test uses — so it doubles as the healthcheck
+        # gate for the k8s wiring. 5 min covers 60s probe initial delay +
+        # 60s period + ~30-60s IB Gateway login + runner CPU jitter.
+        kubectl -n ib-gateway rollout status statefulset/ib-gateway --timeout=300s
+
+    - name: Dump k8s diagnostics on failure
+      if: failure()
+      run: |
+        kubectl -n ib-gateway get all -o wide || true
+        kubectl -n ib-gateway describe pod ib-gateway-0 || true
+        kubectl -n ib-gateway logs ib-gateway-0 -c seed-jts --tail=50 || true
+        kubectl -n ib-gateway logs ib-gateway-0 --tail=200 || true
+
+    - name: Tear down k3d cluster
+      if: always()
+      run: k3d cluster delete ib-gateway-ci || true
 
     - name: Stop and remove leftover containers
       if: always()
