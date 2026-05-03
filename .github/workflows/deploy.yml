@@ -8,6 +8,11 @@ on:
        - '*'
    workflow_dispatch:
 
+env:
+  # Opt JS-based actions into Node 24; Node 20 is deprecated and will be
+  # removed from runners on 2026-09-16.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     strategy:

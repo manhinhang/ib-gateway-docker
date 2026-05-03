@@ -1,5 +1,5 @@
 name: Build test
-on: 
+on:
   push:
     branches:
       - develop
@@ -8,6 +8,12 @@ on:
       - 'README.md'
       - 'LICENSE'
   pull_request:
+
+env:
+  # Opt every JavaScript-based action into Node.js 24. Node 20 is deprecated
+  # on GitHub-hosted runners and will be removed on 2026-09-16; without this
+  # the next runner upgrade silently fails any action still on Node 20.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build:
