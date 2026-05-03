@@ -2,16 +2,38 @@ services:
   ib-gateway:
     build:
       context: .
-    ports:
-      - 4002:4002
+      # Use host networking for the build only. The default bridge network
+      # times out reaching deb.debian.org on this host; host networking is
+      # the documented workaround.
+      network: host
+    # Run on host networking at runtime as well — this host's docker bridge
+    # has unreliable outbound NAT, which causes IBKR connectivity flakes.
+    # Host networking also removes the docker-proxy hop on port 4002.
+    network_mode: host
     environment:
       - IB_ACCOUNT=$IB_ACCOUNT
       - IB_PASSWORD=$IB_PASSWORD
       - TRADING_MODE=$TRADING_MODE
+      # Host networking shares /tmp/.X11-unix with the host. If the host
+      # has a desktop X server on :0, container Xvfb on :0 will fail —
+      # use :99 to avoid the collision.
+      - DISPLAY=:99
+    # Persist /root/Jts so IB Gateway's device fingerprint and jts.ini
+    # survive container restarts — IBKR then recognises the restart as the
+    # same trusted device and skips 2FA (within the daily token / weekly
+    # Sunday 1AM ET reset window). Wipe this volume when you bump
+    # versions.env, otherwise the old IB Gateway binary in the volume
+    # hides the new install. See CLAUDE.md → Session persistence.
+    volumes:
+      - ib-gateway-jts:/root/Jts
+    restart: unless-stopped
     healthcheck:
       test: /healthcheck/bin/healthcheck
       interval: 60s
       timeout: 30s
       retries: 3
       start_period: 60s
+
+volumes:
+  ib-gateway-jts:
 

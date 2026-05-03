@@ -81,6 +81,98 @@ The Dockerfile uses a **multi-stage build** approach:
 6. IBC launches IB Gateway with provided credentials
 7. Cleanup handlers trap INT/TERM signals for graceful shutdown
 
+### Session Persistence
+
+IB Gateway only skips 2FA on launch if it finds an **autorestart file** on
+disk (it logs `autorestart file found` vs `autorestart file not found:
+full authentication will be required`). That file is *only* written when
+IB Gateway performs its own soft restart — never on a normal login, and
+never when something kills the JVM externally. The setup uses three
+mechanisms together to keep this file fresh:
+
+1. **IBC `AutoRestartTime`** (env var `IBC_AUTO_RESTART_TIME`, default
+   `11:00 AM` UTC) schedules an internal JVM soft restart once a day.
+   IB Gateway writes the autorestart file then bounces — no 2FA. Primary
+   defence against IBKR's ~24h token expiry. The default lands in the gap
+   between HK regular close (08:00 UTC) and US regular open (13:30 UTC EDT
+   summer / 14:30 UTC EST winter), so the ~60–90s restart window doesn't
+   overlap either market's regular session — see *Picking a restart time*
+   below if you trade other markets.
+2. **IBC command server** (env vars `IBC_COMMAND_SERVER_PORT` default
+   `7462`, `IBC_BIND_ADDRESS` default `127.0.0.1`) lets the host send
+   `RESTART` over loopback to trigger the same soft-restart codepath on
+   demand. Use `./scripts/restart-ib-gateway.sh` to send it.
+3. **Persistent `/root/Jts` volume** stores the autorestart file (plus
+   `jts.ini` and the device-fingerprint dir) so it survives a container
+   exit and a fresh PID 1.
+
+`start.sh` injects all three values into `/root/ibc/config.ini` at boot —
+the committed config keeps upstream defaults so the file stays portable.
+
+#### Operational matrix
+
+The autorestart file is **single-use** — IB Gateway writes it at the start
+of every soft restart, the next launcher reads it and immediately consumes
+it. So the file does *not* sit around waiting for a future restart; only
+the soft-restart codepath itself bridges sessions.
+
+| Action | 2FA required? | Use it for |
+|--------|---------------|------------|
+| `docker compose restart` (any time) | **YES** — kills the JVM directly; no autorestart file is written before it dies, and any prior file has already been consumed | Avoid for live |
+| `./scripts/restart-ib-gateway.sh` (IBC RESTART over loopback) | **NO** — runs the soft-restart codepath: writes a fresh autorestart file, exits the JVM, the new JVM consumes the file | Ad-hoc restarts, config reloads |
+| Nightly `AutoRestartTime` (default `11:00 AM` UTC, automatic) | **NO** — same codepath as RESTART | Always on, no action needed |
+| First start with empty volume, or after `docker volume rm`, or after Sunday 1AM ET reset | **YES** | Unavoidable |
+
+IBC's RESTART command is **asynchronous** — it sets the auto-restart time
+to "now + ~1 minute" and lets IB Gateway's regular auto-restart logic
+fire. Expect a ~60–90 second gap between sending RESTART and the new
+session being healthy. The verify script (`scripts/verify-session-persistence.sh`)
+waits for the launcher's `autorestart file found` log line as the
+authoritative success signal, then waits for the healthcheck to flip back.
+
+#### Picking a restart time
+
+`AutoRestartTime` is interpreted in the container's timezone, which is
+**UTC** (`user.timezone = Etc/UTC`). The format IBC accepts is `hh:mm AM`
+or `hh:mm PM` (no seconds). Two windows where neither HK nor US regular
+markets are trading:
+
+| Window | UTC range | HKT range | ET range | Notes |
+|--------|-----------|-----------|----------|-------|
+| After HK close, before US open | 08:00 – 13:30 (EDT) / 14:30 (EST) | 16:00 – 21:30 (EDT) / 22:30 (EST) | 04:00 – 09:30 ET | The default `11:00 AM` UTC sits here |
+| After US close, before HK open | 20:00 (EDT) / 21:00 (EST) – 01:30 next day | 04:00 – 09:30 next day | 16:00 – 21:30 ET | Older default `11:55 PM` was here, only ~1.5h before HK open |
+
+Override via env if you trade other markets:
+
+```bash
+# Tokyo trader who wants the restart between TSE close (06:00 UTC) and
+# US open (13:30 UTC summer):
+IBC_AUTO_RESTART_TIME="10:00 AM"
+
+# London trader who wants the restart well before LSE open (08:00 UTC):
+IBC_AUTO_RESTART_TIME="04:00 AM"
+```
+
+**Hard limits** (cannot be worked around):
+- IBKR fully resets every Sunday 1AM ET — the next login after that boundary
+  always requires 2FA, regardless of the autorestart file.
+- Volumes are *per IB account*. If you change `IB_ACCOUNT`, the cached
+  fingerprint is for the previous user — IBKR will challenge 2FA. Wipe the
+  volume in that case.
+- Multi-container deployments need distinct command-server ports because
+  host networking shares loopback. `docker-compose.multi.yaml` already
+  assigns paper=`7462` and live=`7463` via `IBC_COMMAND_SERVER_PORT`; add
+  more services with their own ports if you fan out further.
+
+**Security:** the command server on `IBC_BIND_ADDRESS:IBC_COMMAND_SERVER_PORT`
+(default `127.0.0.1:7462`) accepts `RESTART`, `STOP`, and other commands
+from any process that can reach it. With `network_mode: host`, an empty
+`BindAddress=` would expose it on every NIC — do NOT set
+`IBC_BIND_ADDRESS` to a non-loopback value without locking down who can
+reach the port. **The volume contains a credential-equivalent device
+fingerprint** — treat `/var/lib/docker/volumes/<...>-jts/` with the same
+sensitivity as `.secrets`.
+
 ## Environment Variables
 
 ### Required
@@ -90,10 +182,14 @@ The Dockerfile uses a **multi-stage build** approach:
 
 ### Optional
 - `IBGW_PORT` - Gateway port (default: 4002)
+- `IBGW_INTERNAL_PORT` - Internal port IB Gateway's Java binds (default: 4001)
 - `JAVA_HEAP_SIZE` - JVM heap size in MB (default: 768)
 - `HEALTHCHECK_API_ENABLE` - Enable REST API health check (default: false)
 - `TWOFA_TIMEOUT_ACTION` - Action on 2FA timeout (default: restart)
 - `DISPLAY` - X display (default: :0, set automatically)
+- `IBC_AUTO_RESTART_TIME` - When IB Gateway performs its nightly soft restart that preserves the session (default: `11:55 PM`). Set to empty string to disable.
+- `IBC_COMMAND_SERVER_PORT` - Port IBC's command server listens on for `RESTART`/`STOP` commands (default: 7462). Set to 0 to disable. Multi-container deployments must set distinct ports per service.
+- `IBC_BIND_ADDRESS` - Address the IBC command server binds to (default: `127.0.0.1`). **DO NOT** set to a non-loopback value without locking down access — anyone who can reach the port can shut down or restart your gateway.
 
 ## Development Workflow
 
@@ -223,6 +319,22 @@ The version update is **automated** via GitHub Actions, but can be done manually
 2. Update version in `README.md`
 3. Test the build: `docker build -t test-image .`
 4. Create PR with changes
+
+**Volume wipe required on version bump.** Because the persistent `/root/Jts`
+volume is initialised from the image's `/root/Jts` only on first mount, an
+existing volume keeps the *old* IB Gateway binary and hides the new install.
+`start.sh` then picks the old version via `ls $TWS_PATH/ibgateway`. After
+bumping `versions.env`, run:
+
+```bash
+docker compose down
+docker volume ls | grep -E 'jts$'                # find the volume name(s)
+docker volume rm ib-gateway-docker_ib-gateway-jts  # adjust prefix
+docker compose up -d                              # IBKR will 2FA once
+```
+
+The 2FA on first start is unavoidable — the new binary writes a new device
+fingerprint that IBKR has not yet trusted.
 
 ### Adding New Features
 
