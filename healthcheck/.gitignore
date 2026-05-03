@@ -3,3 +3,8 @@
 
 # Ignore Gradle build output directory
 build
+
+# Wrapper.kt is regenerated from EWrapper.java at build time
+# (see healthcheck/build.gradle.kts and generate-wrapper.sh).
+# Ignore the local copy so it doesn't drift from what the generator produces.
+healthcheck/src/main/kotlin/com/manhinhang/ibgatewaydocker/healthcheck/Wrapper.kt
