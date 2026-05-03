@@ -117,4 +117,15 @@ ENV HEALTHCHECK_API_ENABLE=false
 
 EXPOSE $IBGW_PORT
 
-ENTRYPOINT [ "sh", "/root/start.sh" ]
+# Run as non-root. Use /root as $HOME so IBC's TWS_SETTINGS_PATH (derived
+# from $HOME/Jts) lands where TWS was installed during the build. Pre-create
+# /tmp/.X11-unix with 1777 perms because Xvfb's transport refuses to mkdir
+# it when euid != 0.
+RUN useradd -u 1000 -d /root -s /bin/bash ibgw \
+ && chown -R ibgw:ibgw /root /opt/ibc /healthcheck /healthcheck-rest \
+ && chmod 755 /root \
+ && mkdir -p /tmp/.X11-unix \
+ && chmod 1777 /tmp/.X11-unix
+USER ibgw
+
+ENTRYPOINT [ "/root/start.sh" ]
