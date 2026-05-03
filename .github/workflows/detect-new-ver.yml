@@ -17,11 +17,11 @@ jobs:
     - name: detect new versions
       id: check-update
       run: |
-        IB_GATEWAY_LATEST_VER=$(curl -s "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json" | \
+        IB_GATEWAY_LATEST_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json" | \
         grep -Po '"buildVersion"\s*:\s*"\K[^"]+')
-        IB_GATEWAY_STABLE_VER=$(curl -s "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
+        IB_GATEWAY_STABLE_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
         grep -Po '"buildVersion"\s*:\s*"\K[^"]+')
-        IBC_VER=$(curl -s ${IBC_VERSION_JSON_URL} | jq -r '.[0].name')
+        IBC_VER=$(curl -fsSL "${IBC_VERSION_JSON_URL}" | jq -r '.[0].name')
         source .env
 
         HAS_UPDATE='false'
@@ -49,9 +49,11 @@ jobs:
     - name: Update files with new version
       if: steps.check-update.outputs.has_update == 'true'
       run: |
-        sed -e 's/###IB_GATEWAY_LATEST_VER###/${{steps.check-update.outputs.ib-gateway-latest-ver}}/' \
-            -e 's/###IB_GATEWAY_STABLE_VER###/${{steps.check-update.outputs.ib-gateway-stable-ver}}/' \
-            -e 's/###IBC_VER###/${{steps.check-update.outputs.ibc-ver}}/' README.template > README.md
+        # Use '|' as the sed separator so version strings containing '/' or '&'
+        # don't break the substitution.
+        sed -e "s|###IB_GATEWAY_LATEST_VER###|${{steps.check-update.outputs.ib-gateway-latest-ver}}|" \
+            -e "s|###IB_GATEWAY_STABLE_VER###|${{steps.check-update.outputs.ib-gateway-stable-ver}}|" \
+            -e "s|###IBC_VER###|${{steps.check-update.outputs.ibc-ver}}|" README.template > README.md
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:
