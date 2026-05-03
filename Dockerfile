@@ -28,10 +28,12 @@ RUN IBC_ASSET_URL=$(curl -fsSL ${IBC_VERSION_JSON_URL} | jq -r '.[0].assets[]|se
 # copy IBC/Jts configs
 COPY ibc/config.ini ${IBC_INI}
 
-# Extract IB Gateway version
+# Extract IB Gateway version. version.json is JSONP (callback-wrapped),
+# e.g. `ibgatewaylatest_callback({"buildVersion":"10.46.1d",...});`.
+# Strip the callback wrapper before piping to jq.
 RUN curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/version.json" \
- | grep -Po '"buildVersion"\s*:\s*"\K[^"]+' \
- | head -1 > /tmp/ibgw-version
+ | sed -E 's/^[^(]+\(//; s/\);[[:space:]]*$//' \
+ | jq -r '.buildVersion' > /tmp/ibgw-version
 
 ######## healthcheck tools ########
 # temp container to build using gradle

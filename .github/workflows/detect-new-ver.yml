@@ -23,10 +23,10 @@ jobs:
     - name: detect new versions
       id: check-update
       run: |
-        IB_GATEWAY_LATEST_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json" | \
-        grep -Po '"buildVersion"\s*:\s*"\K[^"]+')
-        IB_GATEWAY_STABLE_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | \
-        grep -Po '"buildVersion"\s*:\s*"\K[^"]+')
+        # version.json is JSONP (callback-wrapped); strip the wrapper, then jq.
+        strip_jsonp() { sed -E 's/^[^(]+\(//; s/\);[[:space:]]*$//'; }
+        IB_GATEWAY_LATEST_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json" | strip_jsonp | jq -r '.buildVersion')
+        IB_GATEWAY_STABLE_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | strip_jsonp | jq -r '.buildVersion')
         IBC_VER=$(curl -fsSL "${IBC_VERSION_JSON_URL}" | jq -r '.[0].name')
         source .env
 
