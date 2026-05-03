@@ -73,7 +73,8 @@ The Dockerfile uses a **multi-stage build** approach:
 
 1. `start.sh` is executed as the container entrypoint
 2. Xvfb starts on display `:0` (headless X server)
-3. Port forwarding configured via `socat` (4001 → 4002)
+3. IBC's `OverrideTwsApiPort` is rewritten to `$IBGW_PORT` so IB Gateway's
+   API server binds the configured port directly (no forwarder)
 4. Optional: Health check REST API starts on port 8080
 5. IBC launches IB Gateway with provided credentials
 6. Cleanup handlers trap INT/TERM signals for graceful shutdown
@@ -109,6 +110,18 @@ docker run -d \
   --env TRADING_MODE=paper \
   -p 4002:4002 \
   ib-gateway-docker
+```
+
+### Running Paper + Live Side-by-Side
+
+Two gateways can run simultaneously since each container's IB Gateway binds
+its own `IBGW_PORT` directly (no socat indirection). Use the bundled
+multi-service compose file:
+
+```bash
+# .env supplies IB_PAPER_ACCOUNT/PASSWORD and IB_LIVE_ACCOUNT/PASSWORD
+docker compose -f docker-compose.multi.yaml up -d
+# paper → localhost:4002, live → localhost:4001
 ```
 
 ### Running Tests
@@ -276,7 +289,8 @@ testinfra==x.x.x
 
 1. **Security**: Never commit IB credentials to version control
 2. **Paper Trading**: Use paper trading for all CI/CD testing
-3. **Port Forwarding**: socat forwards 4001→4002 for compatibility
+3. **API Port**: IB Gateway binds `$IBGW_PORT` (default 4002) directly via
+   IBC's `OverrideTwsApiPort`, rewritten by `start.sh` at container start
 4. **Display**: Xvfb required for headless IB Gateway operation
 5. **Cleanup**: Always properly stop containers to avoid orphaned processes
 6. **Versions**: IB Gateway updates frequently; automated detection helps

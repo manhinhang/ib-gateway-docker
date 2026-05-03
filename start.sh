@@ -4,7 +4,7 @@ set -e
 echo "Starting Xvfb..."
 pkill Xvfb 2>/dev/null || true
 rm -f /tmp/.X${DISPLAY#:}-lock
-/usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR &
+/usr/bin/Xvfb "$DISPLAY" -ac -nolisten tcp -screen 0 1024x768x16 +extension RANDR &
 
 echo "Waiting for Xvfb to be ready..."
 XVFB_TIMEOUT=120
@@ -20,20 +20,11 @@ while ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; do
 done
 
 echo "Xvfb is ready"
-echo "Setup port forwarding..."
-
-socat TCP-LISTEN:$IBGW_PORT,fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 TCP:localhost:4001,forever &
-echo "*****************************"
-
-# python /root/bootstrap.py
-
-# echo "IB gateway is ready."
 
 #Define cleanup procedure
 cleanup() {
     pkill java
     pkill Xvfb
-    pkill socat
     echo "Container stopped, performing cleanup..."
 }
 
@@ -66,6 +57,19 @@ else
 fi
 
 echo "detect IB gateway version: $IBGW_VERSION"
+
+# Pin IB Gateway's API socket to $IBGW_PORT so external clients can connect
+# directly without a socat hop. config.ini ships with a static default; this
+# rewrites it to whatever IBGW_PORT was set to at run time. Validate the
+# value first so a misconfigured env var fails loudly instead of producing
+# a corrupt config.ini line that IBC then misreads.
+case "${IBGW_PORT}" in
+  ''|*[!0-9]*)
+    echo "IBGW_PORT must be a positive integer, got: '${IBGW_PORT}'" >&2
+    exit 1
+    ;;
+esac
+sed -i "s|^OverrideTwsApiPort=.*|OverrideTwsApiPort=${IBGW_PORT}|" "${IBC_INI}"
 
 # Inject credentials into the IBC config so they don't appear in
 # /proc/<pid>/cmdline (visible to any in-container 'ps').

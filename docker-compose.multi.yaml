@@ -1,0 +1,73 @@
+# Run paper and live IB Gateways side-by-side as two containers.
+#
+# Uses host networking because IBKR's connection fingerprinting treats
+# docker bridge NAT as a new/unverified device and pops a "Gateway" device
+# verification dialog that IBC's standard handlers do not auto-dismiss.
+# Host networking puts the container behind the host's real interface and
+# the dialog never appears.
+#
+# SECURITY: with `network_mode: host`, ports 4001 (live) and 4002 (paper)
+# bind directly on every host interface — there is no docker `-p` mapping
+# layer to restrict reachability. Configure your host firewall (or run
+# this on a single-tenant box) to make sure these ports are not exposed
+# to the internet.
+#
+# Required env vars (typically supplied via `.env`):
+#   IB_PAPER_ACCOUNT, IB_PAPER_PASSWORD
+#   IB_LIVE_ACCOUNT,  IB_LIVE_PASSWORD  (only when starting the live profile)
+#
+# Usage:
+#   # Paper only (default — does NOT start the real-money live gateway):
+#   docker compose -f docker-compose.multi.yaml up -d
+#
+#   # Both paper and live (real-money trading enabled):
+#   docker compose -f docker-compose.multi.yaml --profile live up -d
+#
+# Connect from the host:
+#   paper → localhost:4002
+#   live  → localhost:4001
+
+services:
+  ib-gateway-paper:
+    build:
+      context: .
+    container_name: ib-gateway-paper
+    network_mode: host
+    environment:
+      - IB_ACCOUNT=${IB_PAPER_ACCOUNT}
+      - IB_PASSWORD=${IB_PAPER_PASSWORD}
+      - TRADING_MODE=paper
+      - IBGW_PORT=4002
+      # Distinct DISPLAY per container: host networking shares the X11
+      # abstract-socket namespace, so two containers using the same display
+      # number would race for /tmp/.X11-unix/X<n> and the second Xvfb
+      # would fail to start.
+      - DISPLAY=:99
+    healthcheck:
+      test: /healthcheck/bin/healthcheck
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
+  ib-gateway-live:
+    # WARNING: starts a REAL-MONEY trading session. Gated behind the
+    # `live` profile so a bare `docker compose up` only starts paper.
+    # Use `docker compose --profile live up` to start this service.
+    profiles: ["live"]
+    build:
+      context: .
+    container_name: ib-gateway-live
+    network_mode: host
+    environment:
+      - IB_ACCOUNT=${IB_LIVE_ACCOUNT}
+      - IB_PASSWORD=${IB_LIVE_PASSWORD}
+      - TRADING_MODE=live
+      - IBGW_PORT=4001
+      - DISPLAY=:100
+    healthcheck:
+      test: /healthcheck/bin/healthcheck
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
