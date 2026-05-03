@@ -1,0 +1,180 @@
+# Single IB Gateway on Kubernetes.
+#
+# Mirrors docker-compose.yaml (one gateway, /root/Jts persisted) for k8s.
+# Apply with:
+#
+#   kubectl apply -f examples/k8s/single.yaml
+#
+# Then put real credentials into the Secret. The pod will not pass the
+# healthcheck without them — bad creds make IBC loop on the login dialog.
+# Two ways to set creds:
+#
+#   # Edit in place (k8s decodes stringData -> data):
+#   kubectl -n ib-gateway edit secret ib-gateway
+#
+#   # Or replace from env vars / .env:
+#   kubectl -n ib-gateway create secret generic ib-gateway \
+#     --from-literal=IB_ACCOUNT="$IB_ACCOUNT" \
+#     --from-literal=IB_PASSWORD="$IB_PASSWORD" \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# After that the StatefulSet should re-roll on its own; if not:
+#
+#   kubectl -n ib-gateway rollout restart statefulset/ib-gateway
+#
+# Connect from your workstation (no LoadBalancer needed):
+#
+#   kubectl -n ib-gateway port-forward svc/ib-gateway 4002:4002
+#
+# Why StatefulSet (not Deployment): /root/Jts holds the IBKR device
+# fingerprint that lets a restart skip 2FA. Each replica must keep its
+# own PVC for life. StatefulSet's volumeClaimTemplates is the natural
+# fit. See CLAUDE.md → Session Persistence.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ib-gateway
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ib-gateway
+  namespace: ib-gateway
+type: Opaque
+stringData:
+  IB_ACCOUNT: REPLACE_ME
+  IB_PASSWORD: REPLACE_ME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ib-gateway
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: ib-gateway
+  ports:
+    - name: api
+      port: 4002
+      targetPort: api
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ib-gateway
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+spec:
+  serviceName: ib-gateway
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ib-gateway
+  template:
+    metadata:
+      labels:
+        app: ib-gateway
+    spec:
+      # IBC's RESTART codepath takes ~60-90s to write the autorestart file
+      # and bounce the JVM. A normal SIGTERM kills the JVM directly without
+      # going through that codepath, so longer grace here only matters for
+      # the rare case where the pod is mid-soft-restart when it's evicted.
+      terminationGracePeriodSeconds: 120
+      # Docker auto-seeds named volumes from the image on first mount; k8s
+      # PVCs always start empty, which would hide the image's pre-installed
+      # /root/Jts/ibgateway/<version>/ binary. Seed once with cp -n (no-clobber)
+      # so this matches docker semantics: fresh PVC gets a full copy, an
+      # existing PVC keeps its jts.ini / fingerprint / autorestart file
+      # untouched. Same caveat as docker — wipe the PVC after a version bump
+      # in versions.env, otherwise the old binary stays. See CLAUDE.md.
+      initContainers:
+        - name: seed-jts
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              if [ -z "$(ls -A /pvc 2>/dev/null)" ]; then
+                echo "Empty /root/Jts PVC — seeding from image."
+              else
+                echo "/root/Jts already populated; cp -n only fills gaps."
+              fi
+              # cp -rn (not -a): local-path PVCs reject mtime preservation
+              # on the root dir, which trips set -e. Glob skips dotfiles
+              # but /root/Jts ships only ibgateway/; the ls below fails
+              # loudly if the glob ever matches nothing.
+              cp -rn /root/Jts/* /pvc/
+              ls /pvc/ibgateway
+          volumeMounts:
+            - name: jts
+              mountPath: /pvc
+      containers:
+        - name: ib-gateway
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: api
+              containerPort: 4002
+          env:
+            - name: TRADING_MODE
+              value: "paper"
+            # External port clients connect to. socat in start.sh forwards
+            # IBGW_PORT -> IBGW_INTERNAL_PORT inside the pod.
+            - name: IBGW_PORT
+              value: "4002"
+            # Pod has its own X11 abstract-socket namespace, so :99 vs :0
+            # doesn't matter for k8s. Kept at :99 to match compose.
+            - name: DISPLAY
+              value: ":99"
+            - name: IB_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway
+                  key: IB_ACCOUNT
+            - name: IB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway
+                  key: IB_PASSWORD
+          # Same probe binary as the compose healthcheck. Liveness lets
+          # k8s restart a wedged JVM; readiness gates the Service from
+          # routing traffic until the gateway is logged in.
+          livenessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: jts
+              mountPath: /root/Jts
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "1536Mi"
+  volumeClaimTemplates:
+    - metadata:
+        name: jts
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi

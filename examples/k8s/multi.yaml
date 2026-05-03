@@ -1,0 +1,337 @@
+# Paper + live IB Gateways on Kubernetes, side-by-side.
+#
+# Mirrors docker-compose.multi.yaml but **without** the Docker-only port
+# juggling:
+#
+#   docker-compose.multi.yaml uses network_mode: host, so paper and live
+#   share the host's loopback. To stop their IB Gateway and IBC command
+#   server processes from racing for the same TCP port, the compose file
+#   gives them distinct IBGW_INTERNAL_PORT (4011 / 4012) and
+#   IBC_COMMAND_SERVER_PORT (7462 / 7463) values.
+#
+#   In k8s, each pod has its own network namespace, so the two pods are
+#   completely isolated on loopback. We can leave IBGW_INTERNAL_PORT at
+#   the upstream default 4001 and IBC_COMMAND_SERVER_PORT at 7462 inside
+#   *both* pods — no collision possible. The only thing that has to
+#   differ between paper and live is IBGW_PORT (4002 / 4001), so the
+#   familiar `localhost:4002` (paper) / `localhost:4001` (live) works
+#   from the host via port-forward.
+#
+# Apply:
+#
+#   kubectl apply -f examples/k8s/multi.yaml
+#
+#   # paper-only smoke (skip live):
+#   kubectl apply -f examples/k8s/multi.yaml \
+#     -l 'mode in (shared,paper)'
+#
+# Set credentials BEFORE the pods need them:
+#
+#   kubectl -n ib-gateway create secret generic ib-gateway-paper \
+#     --from-literal=IB_ACCOUNT="$IB_PAPER_ACCOUNT" \
+#     --from-literal=IB_PASSWORD="$IB_PAPER_PASSWORD" \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+#   kubectl -n ib-gateway create secret generic ib-gateway-live \
+#     --from-literal=IB_ACCOUNT="$IB_LIVE_ACCOUNT" \
+#     --from-literal=IB_PASSWORD="$IB_LIVE_PASSWORD" \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# Connect from your workstation:
+#
+#   kubectl -n ib-gateway port-forward svc/ib-gateway-paper 4002:4002
+#   kubectl -n ib-gateway port-forward svc/ib-gateway-live  4001:4001
+#
+# WARNING: ib-gateway-live runs a REAL-MONEY trading session. Compose
+# gates this behind a `live` profile; k8s has no equivalent built-in,
+# so live is just a separate StatefulSet with its own labels. If you
+# want a paper-only smoke run, see the labelled apply above.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ib-gateway
+  labels:
+    mode: shared
+---
+# ─── paper ─────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ib-gateway-paper
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: paper
+type: Opaque
+stringData:
+  IB_ACCOUNT: REPLACE_ME
+  IB_PASSWORD: REPLACE_ME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ib-gateway-paper
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: paper
+spec:
+  type: ClusterIP
+  selector:
+    app: ib-gateway
+    mode: paper
+  ports:
+    - name: api
+      port: 4002
+      targetPort: api
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ib-gateway-paper
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: paper
+spec:
+  serviceName: ib-gateway-paper
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ib-gateway
+      mode: paper
+  template:
+    metadata:
+      labels:
+        app: ib-gateway
+        mode: paper
+    spec:
+      terminationGracePeriodSeconds: 120
+      # Docker auto-seeds named volumes from the image on first mount; k8s
+      # PVCs always start empty, which would hide the image's pre-installed
+      # /root/Jts/ibgateway/<version>/ binary. Seed once with cp -n (no-clobber)
+      # so this matches docker semantics: fresh PVC gets a full copy, an
+      # existing PVC keeps its jts.ini / fingerprint / autorestart file
+      # untouched. Same caveat as docker — wipe the PVC after a version bump
+      # in versions.env, otherwise the old binary stays. See CLAUDE.md.
+      initContainers:
+        - name: seed-jts
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              if [ -z "$(ls -A /pvc 2>/dev/null)" ]; then
+                echo "Empty /root/Jts PVC — seeding from image."
+              else
+                echo "/root/Jts already populated; cp -n only fills gaps."
+              fi
+              # cp -rn (not -a): local-path PVCs reject mtime preservation
+              # on the root dir, which trips set -e. Glob skips dotfiles
+              # but /root/Jts ships only ibgateway/; the ls below fails
+              # loudly if the glob ever matches nothing.
+              cp -rn /root/Jts/* /pvc/
+              ls /pvc/ibgateway
+          volumeMounts:
+            - name: jts
+              mountPath: /pvc
+      containers:
+        - name: ib-gateway
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: api
+              containerPort: 4002
+          env:
+            - name: TRADING_MODE
+              value: "paper"
+            - name: IBGW_PORT
+              value: "4002"
+            - name: DISPLAY
+              value: ":99"
+            - name: IB_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-paper
+                  key: IB_ACCOUNT
+            - name: IB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-paper
+                  key: IB_PASSWORD
+          livenessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: jts
+              mountPath: /root/Jts
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "1536Mi"
+  volumeClaimTemplates:
+    - metadata:
+        name: jts
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+---
+# ─── live (real-money) ─────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ib-gateway-live
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: live
+type: Opaque
+stringData:
+  IB_ACCOUNT: REPLACE_ME
+  IB_PASSWORD: REPLACE_ME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ib-gateway-live
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: live
+spec:
+  type: ClusterIP
+  selector:
+    app: ib-gateway
+    mode: live
+  ports:
+    - name: api
+      port: 4001
+      targetPort: api
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ib-gateway-live
+  namespace: ib-gateway
+  labels:
+    app: ib-gateway
+    mode: live
+spec:
+  serviceName: ib-gateway-live
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ib-gateway
+      mode: live
+  template:
+    metadata:
+      labels:
+        app: ib-gateway
+        mode: live
+    spec:
+      terminationGracePeriodSeconds: 120
+      # Docker auto-seeds named volumes from the image on first mount; k8s
+      # PVCs always start empty, which would hide the image's pre-installed
+      # /root/Jts/ibgateway/<version>/ binary. Seed once with cp -n (no-clobber)
+      # so this matches docker semantics: fresh PVC gets a full copy, an
+      # existing PVC keeps its jts.ini / fingerprint / autorestart file
+      # untouched. Same caveat as docker — wipe the PVC after a version bump
+      # in versions.env, otherwise the old binary stays. See CLAUDE.md.
+      initContainers:
+        - name: seed-jts
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              if [ -z "$(ls -A /pvc 2>/dev/null)" ]; then
+                echo "Empty /root/Jts PVC — seeding from image."
+              else
+                echo "/root/Jts already populated; cp -n only fills gaps."
+              fi
+              # cp -rn (not -a): local-path PVCs reject mtime preservation
+              # on the root dir, which trips set -e. Glob skips dotfiles
+              # but /root/Jts ships only ibgateway/; the ls below fails
+              # loudly if the glob ever matches nothing.
+              cp -rn /root/Jts/* /pvc/
+              ls /pvc/ibgateway
+          volumeMounts:
+            - name: jts
+              mountPath: /pvc
+      containers:
+        - name: ib-gateway
+          image: manhinhang/ib-gateway-docker:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: api
+              containerPort: 4001
+          env:
+            - name: TRADING_MODE
+              value: "live"
+            - name: IBGW_PORT
+              value: "4001"
+            - name: DISPLAY
+              value: ":99"
+            - name: IB_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-live
+                  key: IB_ACCOUNT
+            - name: IB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ib-gateway-live
+                  key: IB_PASSWORD
+          livenessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/healthcheck/bin/healthcheck"]
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: jts
+              mountPath: /root/Jts
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "1536Mi"
+  volumeClaimTemplates:
+    - metadata:
+        name: jts
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
