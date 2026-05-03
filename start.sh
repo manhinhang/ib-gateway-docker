@@ -4,15 +4,14 @@ set -e
 echo "Starting Xvfb..."
 pkill Xvfb 2>/dev/null || true
 rm -f /tmp/.X${DISPLAY#:}-lock
-/usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR >&1 &
+/usr/bin/Xvfb "$DISPLAY" -ac -screen 0 1024x768x16 +extension RANDR &
 
 echo "Waiting for Xvfb to be ready..."
 XVFB_TIMEOUT=120
 XVFB_WAITING_TIME=0
-while ! xdpyinfo -display "$DISPLAY"; do
-  echo -n ''
+while ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; do
   sleep 1
-  XVFB_WAITING_TIME=$(($XVFB_WAITING_TIME+1))
+  XVFB_WAITING_TIME=$((XVFB_WAITING_TIME + 1))
   echo "WAITING TIME: $XVFB_WAITING_TIME"
   if [ "$XVFB_WAITING_TIME" -gt "$XVFB_TIMEOUT" ]; then
     echo "Xvfb TIMED OUT"
@@ -23,7 +22,7 @@ done
 echo "Xvfb is ready"
 echo "Setup port forwarding..."
 
-socat TCP-LISTEN:$IBGW_PORT,fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 TCP:localhost:4001,forever >&1 &
+socat TCP-LISTEN:$IBGW_PORT,fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 TCP:localhost:4001,forever &
 echo "*****************************"
 
 # python /root/bootstrap.py
@@ -51,7 +50,7 @@ set_java_heap() {
 		sed -i -E "${_string}" "${_vmpath}/ibgateway.vmoptions"
 		echo "Java heap size set to ${JAVA_HEAP_SIZE}m"
 	else
-		echo "Usign default Java heap size."
+		echo "Using default Java heap size."
 	fi
 }
 
@@ -61,7 +60,7 @@ set_java_heap
 # start rest api for healthcheck
 if [ "$HEALTHCHECK_API_ENABLE" = true ] ; then
   echo "starting healthcheck api..."
-  healthcheck-rest >&1 &
+  healthcheck-rest &
 else
   echo "Skip starting healthcheck api"
 fi

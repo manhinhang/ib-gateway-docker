@@ -1,40 +1,37 @@
 ######## Downloader ########
-FROM debian:bookworm-slim as downloader
+FROM debian:bookworm-slim AS downloader
 
 ARG CHANNEL=latest
 
 # set environment variables
-ENV IBC_VERSION_JSON_URL="https://api.github.com/repos/IbcAlpha/IBC/releases"
-ENV IBC_INI=/root/ibc/config.ini \
+ENV IBC_VERSION_JSON_URL="https://api.github.com/repos/IbcAlpha/IBC/releases" \
+    IBC_INI=/root/ibc/config.ini \
     IBC_PATH=/opt/ibc
 
-# install dependencies
-RUN  apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y wget \
-  unzip
-RUN apt install -y jq curl
-
-# make dirs
-RUN mkdir -p /tmp
+# install dependencies (single layer, single update, lists cleared)
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y wget unzip jq curl \
+ && rm -rf /var/lib/apt/lists/*
 
 # download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh
-RUN chmod +x /tmp/ibgw.sh
+RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh \
+ && chmod +x /tmp/ibgw.sh
 
-# download IBC
-RUN IBC_ASSET_URL=$(curl ${IBC_VERSION_JSON_URL} | jq -r '.[0].assets[]|select(.name | test("IBCLinux*")).browser_download_url') && \
-wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL}
-RUN unzip /tmp/IBC.zip -d ${IBC_PATH}
-RUN chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
+# download IBC. -f makes curl fail loudly on HTTP errors instead of piping
+# the error body into jq and producing a confusing parse error.
+RUN IBC_ASSET_URL=$(curl -fsSL ${IBC_VERSION_JSON_URL} | jq -r '.[0].assets[]|select(.name | test("IBCLinux*")).browser_download_url') \
+ && wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL} \
+ && unzip /tmp/IBC.zip -d ${IBC_PATH} \
+ && chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 
 # copy IBC/Jts configs
 COPY ibc/config.ini ${IBC_INI}
 
 # Extract IB Gateway version
-RUN curl "https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/version.json" | \
-grep -Po '"buildVersion"\s*:\s*"\K[^"]+' | \
-head -1 > /tmp/ibgw-version
+RUN curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/version.json" \
+ | grep -Po '"buildVersion"\s*:\s*"\K[^"]+' \
+ | head -1 > /tmp/ibgw-version
 
 ######## healthcheck tools ########
 # temp container to build using gradle
@@ -60,19 +57,20 @@ RUN unzip healthcheck-rest/build/distributions/healthcheck-rest-boot.zip -d $APP
 
 FROM debian:bookworm-slim
 
-# install dependencies
-RUN  apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y \
-  xvfb \
-  libxtst6 \
-  libxrender1 \
-  net-tools \
-  x11-utils \
-  socat \
-  procps \
-  xterm
-RUN apt install -y openjdk-17-jre
+# install dependencies (single layer, lists cleared)
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+    xvfb \
+    libxtst6 \
+    libxrender1 \
+    net-tools \
+    x11-utils \
+    socat \
+    procps \
+    xterm \
+    openjdk-17-jre \
+ && rm -rf /var/lib/apt/lists/*
 
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
@@ -111,9 +109,9 @@ RUN chmod +x /root/start.sh
 # set display environment variable (must be set after TWS installation)
 ENV DISPLAY=:0
 
-ENV IBGW_PORT 4002
-ENV JAVA_HEAP_SIZE 768
-ENV HEALTHCHECK_API_ENABLE=false
+ENV IBGW_PORT=4002 \
+    JAVA_HEAP_SIZE=768 \
+    HEALTHCHECK_API_ENABLE=false
 
 EXPOSE $IBGW_PORT
 
