@@ -38,7 +38,6 @@ This document provides context for AI assistants (like Claude) working with the 
 ├── examples/             # Usage examples
 │   └── ib_insync/       # ib_insync integration example
 ├── scripts/              # Utility scripts
-│   ├── detect_ib_gateway_ver.py
 │   ├── detect_ibc_ver.py
 │   └── extract_ib_gateway_major_minor.sh
 ├── .github/workflows/    # GitHub Actions CI/CD
