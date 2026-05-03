@@ -20,20 +20,12 @@ while ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; do
 done
 
 echo "Xvfb is ready"
-echo "Setup port forwarding..."
-
-socat TCP-LISTEN:$IBGW_PORT,fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 TCP:localhost:4001,forever &
-echo "*****************************"
-
-# python /root/bootstrap.py
-
-# echo "IB gateway is ready."
 
 #Define cleanup procedure
 cleanup() {
     pkill java
     pkill Xvfb
-    pkill socat
+    pkill socat 2>/dev/null
     echo "Container stopped, performing cleanup..."
 }
 
@@ -66,6 +58,40 @@ else
 fi
 
 echo "detect IB gateway version: $IBGW_VERSION"
+
+# Port architecture:
+#   IBGW_PORT          — external port; what clients connect to
+#                        (default 4002, same as before).
+#   IBGW_INTERNAL_PORT — port IB Gateway's Java actually binds, set via
+#                        IBC's OverrideTwsApiPort (default 4001 — keeping
+#                        IB Gateway off its mode's canonical port avoids
+#                        a "Gateway" device-verification dialog that some
+#                        IBKR account/region combinations show when the
+#                        API server is on the canonical paper/live port).
+#   socat              — forwards external → internal when they differ.
+#                        For multi-container deployments under host
+#                        networking, set distinct IBGW_INTERNAL_PORT per
+#                        container so the forward targets do not collide.
+case "${IBGW_PORT}" in
+  ''|*[!0-9]*)
+    echo "IBGW_PORT must be a positive integer, got: '${IBGW_PORT}'" >&2
+    exit 1
+    ;;
+esac
+IBGW_INTERNAL_PORT="${IBGW_INTERNAL_PORT:-4001}"
+case "${IBGW_INTERNAL_PORT}" in
+  ''|*[!0-9]*)
+    echo "IBGW_INTERNAL_PORT must be a positive integer, got: '${IBGW_INTERNAL_PORT}'" >&2
+    exit 1
+    ;;
+esac
+sed -i "s|^OverrideTwsApiPort=.*|OverrideTwsApiPort=${IBGW_INTERNAL_PORT}|" "${IBC_INI}"
+
+if [ "${IBGW_PORT}" != "${IBGW_INTERNAL_PORT}" ]; then
+    echo "Setup port forwarding: ${IBGW_PORT} -> ${IBGW_INTERNAL_PORT}"
+    socat TCP-LISTEN:"${IBGW_PORT}",fork,reuseaddr,keepalive,keepidle=30,keepintvl=10 \
+        TCP:localhost:"${IBGW_INTERNAL_PORT}",forever &
+fi
 
 # Inject credentials into the IBC config so they don't appear in
 # /proc/<pid>/cmdline (visible to any in-container 'ps').

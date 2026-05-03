@@ -72,11 +72,14 @@ The Dockerfile uses a **multi-stage build** approach:
 ### Runtime Flow
 
 1. `start.sh` is executed as the container entrypoint
-2. Xvfb starts on display `:0` (headless X server)
-3. Port forwarding configured via `socat` (4001 → 4002)
-4. Optional: Health check REST API starts on port 8080
-5. IBC launches IB Gateway with provided credentials
-6. Cleanup handlers trap INT/TERM signals for graceful shutdown
+2. Xvfb starts on display `$DISPLAY` (headless X server, default `:0`)
+3. IBC's `OverrideTwsApiPort` is rewritten to `$IBGW_INTERNAL_PORT`
+   (default `4001`); IB Gateway's Java binds that port internally
+4. socat forwards external `$IBGW_PORT` (default `4002`) → internal
+   `$IBGW_INTERNAL_PORT` when the two ports differ
+5. Optional: Health check REST API starts on port 8080
+6. IBC launches IB Gateway with provided credentials
+7. Cleanup handlers trap INT/TERM signals for graceful shutdown
 
 ## Environment Variables
 
@@ -109,6 +112,18 @@ docker run -d \
   --env TRADING_MODE=paper \
   -p 4002:4002 \
   ib-gateway-docker
+```
+
+### Running Paper + Live Side-by-Side
+
+Two gateways can run simultaneously since each container's IB Gateway binds
+its own `IBGW_PORT` directly (no socat indirection). Use the bundled
+multi-service compose file:
+
+```bash
+# .env supplies IB_PAPER_ACCOUNT/PASSWORD and IB_LIVE_ACCOUNT/PASSWORD
+docker compose -f docker-compose.multi.yaml up -d
+# paper → localhost:4002, live → localhost:4001
 ```
 
 ### Running Tests
@@ -276,7 +291,10 @@ testinfra==x.x.x
 
 1. **Security**: Never commit IB credentials to version control
 2. **Paper Trading**: Use paper trading for all CI/CD testing
-3. **Port Forwarding**: socat forwards 4001→4002 for compatibility
+3. **API Port**: IB Gateway's Java binds `$IBGW_INTERNAL_PORT` (default
+   `4001`); socat exposes that as `$IBGW_PORT` (default `4002`) for
+   external clients. Multi-container deployments override
+   `IBGW_INTERNAL_PORT` per container to avoid port-bind races
 4. **Display**: Xvfb required for headless IB Gateway operation
 5. **Cleanup**: Always properly stop containers to avoid orphaned processes
 6. **Versions**: IB Gateway updates frequently; automated detection helps

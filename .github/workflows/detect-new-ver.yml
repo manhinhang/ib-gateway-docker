@@ -28,7 +28,7 @@ jobs:
         IB_GATEWAY_LATEST_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/latest-standalone/version.json" | strip_jsonp | jq -r '.buildVersion')
         IB_GATEWAY_STABLE_VER=$(curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/stable-standalone/version.json" | strip_jsonp | jq -r '.buildVersion')
         IBC_VER=$(curl -fsSL "${IBC_VERSION_JSON_URL}" | jq -r '.[0].name')
-        source .env
+        source versions.env
 
         HAS_UPDATE='false'
         if [ "$IB_GATEWAY_LATEST_VER" != "$CUR_IB_GATEWAY_LATEST_VER" ]; then
@@ -86,12 +86,12 @@ jobs:
         git checkout -b "$branch" origin/master
         # Update files
         git stash pop stash@{0}
-        echo "CUR_IB_GATEWAY_LATEST_VER=${{ steps.check-update.outputs.ib-gateway-latest-ver }}" > .env
-        echo "CUR_IB_GATEWAY_STABLE_VER=${{ steps.check-update.outputs.ib-gateway-stable-ver }}" >> .env
-        echo "CUR_IBC_VER=${{ steps.check-update.outputs.ibc-ver }}" >> .env
+        echo "CUR_IB_GATEWAY_LATEST_VER=${{ steps.check-update.outputs.ib-gateway-latest-ver }}" > versions.env
+        echo "CUR_IB_GATEWAY_STABLE_VER=${{ steps.check-update.outputs.ib-gateway-stable-ver }}" >> versions.env
+        echo "CUR_IBC_VER=${{ steps.check-update.outputs.ibc-ver }}" >> versions.env
         #####
         git add README.md
-        git add -f .env
+        git add versions.env
         git commit -m 'Update to latest `${{ steps.check-update.outputs.ib-gateway-latest-ver }}` stable `${{ steps.check-update.outputs.ib-gateway-stable-ver }}`'
         git push --set-upstream origin "$branch"
 
