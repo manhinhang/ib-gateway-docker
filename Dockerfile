@@ -68,7 +68,6 @@ RUN apt-get update \
     libxrender1 \
     net-tools \
     x11-utils \
-    socat \
     procps \
     xterm \
     openjdk-17-jre \

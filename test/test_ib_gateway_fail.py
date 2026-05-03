@@ -56,8 +56,8 @@ def test_ib_insync_connect_fail(host):
 
 def test_healthcheck_fail(host):
     # The healthcheck binary is shipped in the image at build time, so it's
-    # always present immediately. With bad creds the gateway never opens 4001
-    # and the CLI exits 1 fast — no sleep needed.
+    # always present immediately. With bad creds the gateway never opens its
+    # API port and the CLI exits 1 fast — no sleep needed.
     assert host.exists("healthcheck")
     assert host.run('/healthcheck/bin/healthcheck').rc == 1
 
