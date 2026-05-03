@@ -25,7 +25,6 @@ This document provides context for AI assistants (like Claude) working with the 
 ```
 .
 ├── Dockerfile              # Multi-stage Docker build
-├── Dockerfile.template     # Template for automated version updates
 ├── start.sh               # Container entrypoint script
 ├── ibc/                   # IBC configuration files
 │   └── config.ini        # IBC settings
