@@ -13,7 +13,9 @@ class IBGatewayClient {
 
     companion object {
         val clientId = System.getenv("HEALTHCHECK_CLIENT_ID")?.toIntOrNull() ?: 999
-        val port = System.getenv("IB_GATEWAY_INTERNAL_PORT")?.toIntOrNull() ?: 4001
+        val port = System.getenv("IB_GATEWAY_INTERNAL_PORT")?.toIntOrNull()
+            ?: System.getenv("IBGW_INTERNAL_PORT")?.toIntOrNull()
+            ?: 4001
         const val HOST = "localhost"
 
         // How long to give the gateway to surface a real error after the TCP
