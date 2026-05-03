@@ -35,6 +35,10 @@ services:
   ib-gateway-paper:
     build:
       context: .
+      # Use host networking for the build only. The default bridge network
+      # times out reaching deb.debian.org on this host; host networking is
+      # the documented workaround.
+      network: host
     container_name: ib-gateway-paper
     network_mode: host
     environment:
@@ -46,11 +50,23 @@ services:
       # IB Gateway Java processes do not race for the same host port
       # under host networking.
       - IBGW_INTERNAL_PORT=4011
+      # Distinct IBC command-server port from live (default 7462). Both
+      # containers use host networking, so they would collide on the same
+      # loopback port otherwise. See scripts/restart-ib-gateway.sh.
+      - IBC_COMMAND_SERVER_PORT=7462
       # Distinct DISPLAY per container: host networking shares the X11
       # abstract-socket namespace, so two containers using the same
       # display number would race for /tmp/.X11-unix/X<n> and the second
       # Xvfb would fail to start.
       - DISPLAY=:99
+    # Persist /root/Jts so IB Gateway's device fingerprint and jts.ini
+    # survive container restarts — IBKR skips 2FA on restart within the
+    # daily token / weekly Sunday 1AM ET reset window. Wipe this volume
+    # when you bump versions.env, otherwise the old IB Gateway binary in
+    # the volume hides the new install. See CLAUDE.md → Session persistence.
+    volumes:
+      - ib-gateway-paper-jts:/root/Jts
+    restart: unless-stopped
     healthcheck:
       test: /healthcheck/bin/healthcheck
       interval: 60s
@@ -65,6 +81,10 @@ services:
     profiles: ["live"]
     build:
       context: .
+      # Use host networking for the build only. The default bridge network
+      # times out reaching deb.debian.org on this host; host networking is
+      # the documented workaround.
+      network: host
     container_name: ib-gateway-live
     network_mode: host
     environment:
@@ -73,10 +93,20 @@ services:
       - TRADING_MODE=live
       - IBGW_PORT=4001
       - IBGW_INTERNAL_PORT=4012
+      - IBC_COMMAND_SERVER_PORT=7463
       - DISPLAY=:100
+    # Separate volume from the paper container — each account has its own
+    # IBKR device fingerprint, so they must not share state.
+    volumes:
+      - ib-gateway-live-jts:/root/Jts
+    restart: unless-stopped
     healthcheck:
       test: /healthcheck/bin/healthcheck
       interval: 60s
       timeout: 30s
       retries: 3
       start_period: 60s
+
+volumes:
+  ib-gateway-paper-jts:
+  ib-gateway-live-jts:

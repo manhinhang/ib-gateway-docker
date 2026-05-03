@@ -93,11 +93,34 @@ if [ "${IBGW_PORT}" != "${IBGW_INTERNAL_PORT}" ]; then
         TCP:localhost:"${IBGW_INTERNAL_PORT}",forever &
 fi
 
-# Inject credentials into the IBC config so they don't appear in
-# /proc/<pid>/cmdline (visible to any in-container 'ps').
+# Escape sed-replacement metacharacters before any sed-injection below.
 escape_sed_repl() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
+
+# Session-persistence settings — IBC reads them from config.ini, so we
+# inject the env-var values at boot rather than baking them into the
+# committed config. See CLAUDE.md → Session Persistence.
+case "${IBC_COMMAND_SERVER_PORT}" in
+  ''|*[!0-9]*)
+    echo "IBC_COMMAND_SERVER_PORT must be a non-negative integer, got: '${IBC_COMMAND_SERVER_PORT}'" >&2
+    exit 1
+    ;;
+esac
+# Refuse to start with an empty BindAddress: under network_mode: host that
+# would expose IBC's command server (which accepts STOP/RESTART) on every
+# host NIC. Default to 127.0.0.1; require an explicit override otherwise.
+if [ -z "${IBC_BIND_ADDRESS}" ]; then
+    echo "IBC_BIND_ADDRESS is empty — refusing to bind the command server to all interfaces." >&2
+    echo "  Set IBC_BIND_ADDRESS=127.0.0.1 (default) or to an explicit host/IP you control." >&2
+    exit 1
+fi
+sed -i "s|^CommandServerPort=.*|CommandServerPort=$(escape_sed_repl "${IBC_COMMAND_SERVER_PORT}")|" "${IBC_INI}"
+sed -i "s|^BindAddress=.*|BindAddress=$(escape_sed_repl "${IBC_BIND_ADDRESS}")|" "${IBC_INI}"
+sed -i "s|^AutoRestartTime=.*|AutoRestartTime=$(escape_sed_repl "${IBC_AUTO_RESTART_TIME}")|" "${IBC_INI}"
+
+# Inject credentials into the IBC config so they don't appear in
+# /proc/<pid>/cmdline (visible to any in-container 'ps').
 sed -i "s|^IbLoginId=.*|IbLoginId=$(escape_sed_repl "${IB_ACCOUNT}")|" "${IBC_INI}"
 sed -i "s|^IbPassword=.*|IbPassword=$(escape_sed_repl "${IB_PASSWORD}")|" "${IBC_INI}"
 sed -i "s|^TradingMode=.*|TradingMode=$(escape_sed_repl "${TRADING_MODE}")|" "${IBC_INI}"
