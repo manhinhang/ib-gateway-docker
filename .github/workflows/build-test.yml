@@ -8,6 +8,7 @@ on:
       - 'README.md'
       - 'LICENSE'
   pull_request:
+  workflow_dispatch:
 
 env:
   # Opt every JavaScript-based action into Node.js 24. Node 20 is deprecated
@@ -18,7 +19,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     timeout-minutes: 25
     env:
       IMAGE_NAME: ib-gateway-docker
