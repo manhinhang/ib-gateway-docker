@@ -15,6 +15,7 @@ jobs:
     permissions:
       pull-requests: write
       contents: write
+      actions: write
     env:
       IMAGE_NAME: ib-gateway-docker
       IBC_VERSION_JSON_URL: "https://api.github.com/repos/IbcAlpha/IBC/releases"
@@ -96,3 +97,10 @@ jobs:
         git push --set-upstream origin "$branch"
 
         gh pr create --base master --fill
+
+        # PRs opened with GITHUB_TOKEN do NOT trigger on:pull_request workflows
+        # (GitHub anti-recursion). workflow_dispatch is exempt from that
+        # suppression, so kick build-test explicitly against the new branch;
+        # its check runs land on the PR's head commit and satisfy branch
+        # protection.
+        gh workflow run build-test.yml --ref "$branch"
