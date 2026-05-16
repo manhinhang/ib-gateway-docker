@@ -9,6 +9,7 @@ on:
       - 'LICENSE'
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 env:
   # Opt every JavaScript-based action into Node.js 24. Node 20 is deprecated
