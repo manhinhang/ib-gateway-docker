@@ -61,6 +61,8 @@ jobs:
         sed -e "s|###IB_GATEWAY_LATEST_VER###|${{steps.check-update.outputs.ib-gateway-latest-ver}}|" \
             -e "s|###IB_GATEWAY_STABLE_VER###|${{steps.check-update.outputs.ib-gateway-stable-ver}}|" \
             -e "s|###IBC_VER###|${{steps.check-update.outputs.ibc-ver}}|" README.template > README.md
+        # Keep the Dockerfile's pinned IBC_VERSION build-arg default in sync.
+        sed -i -E "s|^ARG IBC_VERSION=.*|ARG IBC_VERSION=${{steps.check-update.outputs.ibc-ver}}|" Dockerfile
     - name: Create PR
       if: ${{ steps.check-update.outputs.has_update == 'true' }}
       env:
@@ -82,7 +84,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git config advice.addIgnoredFile false
-        git stash push README.md
+        git stash push README.md Dockerfile
         git pull
         git checkout -b "$branch" origin/master
         # Update files
@@ -93,6 +95,7 @@ jobs:
         #####
         git add README.md
         git add versions.env
+        git add Dockerfile
         git commit -m 'Update to latest `${{ steps.check-update.outputs.ib-gateway-latest-ver }}` stable `${{ steps.check-update.outputs.ib-gateway-stable-ver }}`'
         git push --set-upstream origin "$branch"
 

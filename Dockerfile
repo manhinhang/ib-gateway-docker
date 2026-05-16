@@ -2,10 +2,10 @@
 FROM debian:bookworm-slim AS downloader
 
 ARG CHANNEL=latest
+ARG IBC_VERSION=3.23.0
 
 # set environment variables
-ENV IBC_VERSION_JSON_URL="https://api.github.com/repos/IbcAlpha/IBC/releases" \
-    IBC_INI=/root/ibc/config.ini \
+ENV IBC_INI=/root/ibc/config.ini \
     IBC_PATH=/opt/ibc
 
 # install dependencies (single layer, single update, lists cleared)
@@ -18,10 +18,10 @@ RUN apt-get update \
 RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh \
  && chmod +x /tmp/ibgw.sh
 
-# download IBC. -f makes curl fail loudly on HTTP errors instead of piping
-# the error body into jq and producing a confusing parse error.
-RUN IBC_ASSET_URL=$(curl -fsSL ${IBC_VERSION_JSON_URL} | jq -r '.[0].assets[]|select(.name | test("IBCLinux*")).browser_download_url') \
- && wget -q -O /tmp/IBC.zip ${IBC_ASSET_URL} \
+# download IBC from the GitHub releases CDN. Pinned via the IBC_VERSION
+# build-arg — avoids unauthenticated api.github.com calls that get
+# rate-limited (HTTP 403) on shared CI runner IPs.
+RUN wget -q -O /tmp/IBC.zip "https://github.com/IbcAlpha/IBC/releases/download/${IBC_VERSION}/IBCLinux-${IBC_VERSION}.zip" \
  && unzip /tmp/IBC.zip -d ${IBC_PATH} \
  && chmod +x ${IBC_PATH}/*.sh ${IBC_PATH}/*/*.sh
 
