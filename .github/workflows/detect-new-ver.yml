@@ -96,7 +96,7 @@ jobs:
         git commit -m 'Update to latest `${{ steps.check-update.outputs.ib-gateway-latest-ver }}` stable `${{ steps.check-update.outputs.ib-gateway-stable-ver }}`'
         git push --set-upstream origin "$branch"
 
-        gh pr create --base master --fill
+        pr_url=$(gh pr create --base master --fill)
 
         # PRs opened with GITHUB_TOKEN do NOT trigger on:pull_request workflows
         # (GitHub anti-recursion). workflow_dispatch is exempt from that
@@ -104,3 +104,6 @@ jobs:
         # its check runs land on the PR's head commit and satisfy branch
         # protection.
         gh workflow run build-test.yml --ref "$branch"
+
+        # Queue the PR to merge automatically once required checks pass.
+        gh pr merge "$pr_url" --auto --squash
