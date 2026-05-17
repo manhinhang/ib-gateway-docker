@@ -104,6 +104,15 @@ jobs:
         curl -fsSL \
           "https://raw.githubusercontent.com/k3d-io/k3d/b1c64bcb459e266b92ff1d0820a62a6541b1efb5/install.sh" \
           | TAG=v5.7.5 bash
+        # kubectl ships preinstalled on GitHub-hosted ubuntu-latest, but not
+        # in the lightweight `act` runner image. Install it when missing so
+        # the workflow runs identically under local `act`.
+        if ! command -v kubectl >/dev/null 2>&1; then
+          ver="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+          curl -fsSL -o /usr/local/bin/kubectl \
+            "https://dl.k8s.io/release/${ver}/bin/linux/amd64/kubectl"
+          chmod +x /usr/local/bin/kubectl
+        fi
         k3d version
         kubectl version --client
 
@@ -117,32 +126,38 @@ jobs:
 
     - name: Apply manifests with real credentials
       run: |
-        # Swap the image tag in the manifest to the locally-built CI image.
-        sed -E "s|image: manhinhang/ib-gateway-docker:latest|image: ${IMAGE_NAME}|g" \
-          examples/k8s/single.yaml \
-          | kubectl apply -f -
-        # Replace the REPLACE_ME Secret with real paper credentials.
+        # Create the namespace + real Secret BEFORE the StatefulSet so the
+        # first pod boots with valid credentials. The old flow applied a
+        # REPLACE_ME Secret then `rollout restart` to pick up real creds —
+        # but that restart's old-pod teardown (terminationGracePeriodSeconds
+        # 120 + volume detach) can eat 4+ min and blow the rollout timeout.
+        # Seeding creds up front means a single fresh pod, no restart.
+        kubectl create namespace ib-gateway \
+          --dry-run=client -o yaml | kubectl apply -f -
         kubectl -n ib-gateway create secret generic ib-gateway \
           --from-literal=IB_ACCOUNT="$IB_ACCOUNT" \
           --from-literal=IB_PASSWORD="$IB_PASSWORD" \
           --dry-run=client -o yaml | kubectl apply -f -
-        # Pick up the new Secret values.
-        kubectl -n ib-gateway rollout restart statefulset/ib-gateway
+        # Apply Service + StatefulSet with the local CI image, dropping the
+        # manifest's placeholder Secret doc so it can't clobber the real one.
+        python3 -c '
+        docs = open("examples/k8s/single.yaml").read().split("\n---\n")
+        print("\n---\n".join(d for d in docs if "kind: Secret" not in d))
+        ' | sed -E "s|image: manhinhang/ib-gateway-docker:latest|image: ${IMAGE_NAME}|g" \
+          | kubectl apply -f -
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
 
     - name: Wait for rollout to complete
       run: |
-        # rollout status is race-tolerant across rollout-restart pod
-        # recreation (kubectl wait pod/<name> can exit with "no matching
-        # resources found" during the brief window where the pod is
-        # deleted and not yet recreated). It also requires every replica
-        # to satisfy the readiness probe — same /healthcheck/bin/healthcheck
-        # binary the docker test uses — so it doubles as the healthcheck
-        # gate for the k8s wiring. 5 min covers 60s probe initial delay +
-        # 60s period + ~30-60s IB Gateway login + runner CPU jitter.
-        kubectl -n ib-gateway rollout status statefulset/ib-gateway --timeout=300s
+        # One fresh pod, no rollout-restart teardown: seed-jts initContainer
+        # (~10-30s) + 60s readiness initial delay + ~30-60s IB Gateway login.
+        # 420s leaves comfortable margin for slow runners. rollout status
+        # requires every replica to satisfy the readiness probe — same
+        # /healthcheck/bin/healthcheck binary the docker test uses — so it
+        # doubles as the healthcheck gate for the k8s wiring.
+        kubectl -n ib-gateway rollout status statefulset/ib-gateway --timeout=420s
 
     - name: Dump k8s diagnostics on failure
       if: failure()
