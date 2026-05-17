@@ -22,8 +22,12 @@ jobs:
     # Build and run the full functional suite natively on each architecture.
     # The matrix value only selects the runner; each build targets the
     # runner's native arch, so no QEMU emulation is involved.
+    # max-parallel: 1 serializes the arch legs — every functional step logs
+    # into the same IB paper account, and IB Gateway allows only one active
+    # session per account, so the legs must not run concurrently.
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         platform: [linux/amd64, linux/arm64]
     runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
