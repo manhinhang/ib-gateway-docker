@@ -20,6 +20,11 @@ This docker image just installed:
 docker pull manhinhang/ib-gateway-docker
 ```
 
+The image is multi-arch (`linux/amd64` and `linux/arm64`), so Docker pulls
+the variant that matches your host automatically. arm64 hosts (Apple
+Silicon, AWS Graviton, 64-bit Raspberry Pi) run natively — no
+`--platform linux/amd64` emulation needed.
+
 ### Create a container from the image and run it
 ```bash
 docker run -d \

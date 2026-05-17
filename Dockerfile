@@ -14,8 +14,21 @@ RUN apt-get update \
  && apt-get install -y wget unzip jq curl \
  && rm -rf /var/lib/apt/lists/*
 
-# download IB TWS
-RUN wget -q -O /tmp/ibgw.sh https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-linux-x64.sh \
+# download IB TWS. IB ships native per-arch Linux installers; pick the one
+# matching the build target. TARGETARCH is set automatically by buildx
+# (amd64/arm64); fall back to the host arch for a plain `docker build`.
+ARG TARGETARCH
+RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
+ && case "$ARCH" in \
+      arm64) IB_INSTALLER_ARCH=linux-arm ;; \
+      amd64) IB_INSTALLER_ARCH=linux-x64 ;; \
+      *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;; \
+    esac \
+ && IB_URL="https://download2.interactivebrokers.com/installers/ibgateway/${CHANNEL}-standalone/ibgateway-${CHANNEL}-standalone-${IB_INSTALLER_ARCH}.sh" \
+ && wget -q -O /tmp/ibgw.sh "$IB_URL" \
+      || { echo "ERROR: could not download IB Gateway installer from $IB_URL" >&2; \
+           echo "       IB may have stopped publishing the '${IB_INSTALLER_ARCH}' build for channel '${CHANNEL}'." >&2; \
+           exit 1; } \
  && chmod +x /tmp/ibgw.sh
 
 # download IBC. -f makes curl fail loudly on HTTP errors instead of piping
@@ -87,8 +100,10 @@ RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH} && mkdir -p /h
 # download IB TWS
 COPY --from=downloader /tmp/ibgw.sh /tmp/ibgw.sh
 COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
+# Install IB Gateway from the native per-arch installer downloaded above.
+# Each arch's installer carries a matching bundled JVM, so no override needed.
 RUN IB_GATEWAY_VERSION=$(cat /tmp/ibgw-version) && \
-/tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
+    /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
 # remove files
 RUN rm /tmp/ibgw.sh
 RUN rm /tmp/ibgw-version

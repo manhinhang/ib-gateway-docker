@@ -199,6 +199,22 @@ sensitivity as `.secrets`.
 docker build --no-cache -t ib-gateway-docker .
 ```
 
+The image is multi-arch (`linux/amd64` + `linux/arm64`). IB ships native
+per-arch Linux installers — `ibgateway-...-linux-x64.sh` and
+`ibgateway-...-linux-arm.sh` — each carrying a bundled JVM for its
+architecture. The Dockerfile's downloader stage reads `TARGETARCH`
+(populated automatically by buildx) and fetches the matching installer, so
+amd64 and arm64 builds each install IB Gateway with a native bundled JVM.
+To build a specific arch locally:
+
+```bash
+docker buildx build --platform linux/arm64 -t ib-gateway-docker .
+```
+
+CI builds each arch natively (`deploy.yml` uses `ubuntu-latest` and
+`ubuntu-24.04-arm` runners, pushes by digest, then merges a multi-arch
+manifest).
+
 ### Running Locally
 
 ```bash

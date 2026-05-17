@@ -19,7 +19,7 @@ For debugging, Use x11 forwarding to visit IB gateway GUI for the investigation.
     Example: 
 
     ```
-    docker run --platform linux/amd64 -d \
+    docker run -d \
     --env IB_ACCOUNT= \
     --env IB_PASSWORD= \
     --env TRADING_MODE= \
