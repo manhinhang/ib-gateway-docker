@@ -199,13 +199,13 @@ sensitivity as `.secrets`.
 docker build --no-cache -t ib-gateway-docker .
 ```
 
-The image is multi-arch (`linux/amd64` + `linux/arm64`). IB ships only one
-Linux installer (`ibgateway-...-linux-x64.sh`) carrying a bundled x64 JVM;
-IB Gateway itself is pure Java. On an arm64 build the Dockerfile branches on
-`TARGETARCH` and runs the installer with `app_java_home` pointed at the
-apt-installed `openjdk-17-jre` (the architecture-native JRE), so install4j
-uses an arm64 JVM instead of the unusable bundled one. amd64 builds keep
-using the bundled JVM. To build a specific arch locally:
+The image is multi-arch (`linux/amd64` + `linux/arm64`). IB ships native
+per-arch Linux installers — `ibgateway-...-linux-x64.sh` and
+`ibgateway-...-linux-arm.sh` — each carrying a bundled JVM for its
+architecture. The Dockerfile's downloader stage reads `TARGETARCH`
+(populated automatically by buildx) and fetches the matching installer, so
+amd64 and arm64 builds each install IB Gateway with a native bundled JVM.
+To build a specific arch locally:
 
 ```bash
 docker buildx build --platform linux/arm64 -t ib-gateway-docker .
