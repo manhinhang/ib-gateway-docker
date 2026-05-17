@@ -1,7 +1,9 @@
 name: Detect new version
 on:
   schedule:
-    - cron: '0 0 * * *'
+    # 12:00 UTC clears IBKR's ~01:00-local regional maintenance windows;
+    # day range 0-5 (Sun-Fri) skips Saturday weekly maintenance.
+    - cron: '0 12 * * 0-5'
   workflow_dispatch:
 
 env:
