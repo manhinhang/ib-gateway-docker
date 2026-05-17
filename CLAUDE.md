@@ -298,7 +298,7 @@ Two health check methods are available:
    - Requires secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`
 
 3. **detect-new-ver.yml** - Automated version updates
-   - Runs daily via cron
+   - Runs Sun-Fri at 12:00 UTC via cron (skips Saturday to avoid IBKR maintenance)
    - Detects new IB Gateway and IBC versions
    - Creates PR with updated Dockerfile and README
    - Uses version detection scripts
