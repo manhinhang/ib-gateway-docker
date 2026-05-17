@@ -11,13 +11,18 @@ on:
   workflow_dispatch:
   workflow_call:
 
-# Only one build-test run per ref at a time. Each run logs into the shared
-# IB paper account, and IB Gateway allows a single session per account, so
-# a superseded run must be cancelled before the new one starts — otherwise
-# the old run's still-logged-in containers conflict with the new one.
+# Serialize every build-test run repo-wide. Each run logs into the shared
+# IB paper account, and IB Gateway permits a single login session per
+# account. The group is a constant (NOT ${{ github.ref }}-scoped) so runs
+# from different branches/PRs — and deploy.yml's workflow_call — all queue
+# behind one another instead of logging in concurrently.
+# cancel-in-progress: false queues runs rather than cancelling them, so an
+# unrelated PR's in-flight run is never killed. Trade-off: a superseded run
+# on the SAME ref now runs to completion before the next dequeues, instead
+# of being cancelled immediately.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ib-paper-account-build-test
+  cancel-in-progress: false
 
 env:
   # Opt every JavaScript-based action into Node.js 24. Node 20 is deprecated
@@ -68,19 +73,27 @@ jobs:
           -e TRADING_MODE=paper \
           -d $IMAGE_NAME)
         echo "Container started: $CONTAINER_ID"
+        # Log IB Gateway off its IBKR session, then drop the container — in
+        # that order, so the shared paper-account session is released for
+        # the next step instead of lingering on a hard-killed container.
+        teardown() {
+          scripts/ci/graceful-stop.sh docker "$CONTAINER_ID" || true
+          timeout 90 docker wait "$CONTAINER_ID" >/dev/null 2>&1 || true
+          docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true
+        }
         # Wait for IB Gateway to be ready (poll healthcheck with retries)
         for i in $(seq 1 12); do
           echo "Healthcheck attempt $i/12..."
           if docker exec $CONTAINER_ID healthcheck 2>/dev/null; then
             echo "Healthcheck passed"
-            docker rm -f $CONTAINER_ID
+            teardown
             exit 0
           fi
           sleep 10
         done
         echo "Healthcheck failed after 120 seconds"
         docker logs $CONTAINER_ID
-        docker rm -f $CONTAINER_ID
+        teardown
         exit 1
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
@@ -95,17 +108,21 @@ jobs:
 
     - name: Run ib_insync example
       run: |
-        docker run --rm \
-        -e IB_ACCOUNT=$IB_ACCOUNT \
-        -e IB_PASSWORD=$IB_PASSWORD \
-        -e TRADING_MODE=paper \
-        -p 4002:4002 \
-        -d \
-        $IMAGE_NAME;
-        sleep 30;
-        pip install ib_insync pandas;
-        python examples/ib_insync/scripts/connect_gateway.py;
-        docker stop $(docker ps -a -q)
+        CONTAINER_ID=$(docker run \
+          -e IB_ACCOUNT=$IB_ACCOUNT \
+          -e IB_PASSWORD=$IB_PASSWORD \
+          -e TRADING_MODE=paper \
+          -p 4002:4002 \
+          -d \
+          $IMAGE_NAME)
+        sleep 30
+        pip install ib_insync pandas
+        python examples/ib_insync/scripts/connect_gateway.py
+        # Log the gateway off IB cleanly before removing the container, so
+        # the session does not linger into the next matrix leg.
+        scripts/ci/graceful-stop.sh docker "$CONTAINER_ID" || true
+        timeout 90 docker wait "$CONTAINER_ID" >/dev/null 2>&1 || true
+        docker rm -f "$CONTAINER_ID" >/dev/null 2>&1 || true
       env:
         IB_ACCOUNT: ${{ secrets.IB_ACCOUNT }}
         IB_PASSWORD: ${{ secrets.IB_PASSWORD }}
@@ -188,6 +205,21 @@ jobs:
         kubectl -n ib-gateway logs ib-gateway-0 -c seed-jts --tail=50 || true
         kubectl -n ib-gateway logs ib-gateway-0 --tail=200 || true
 
+    - name: Gracefully stop the IB Gateway pod
+      if: always()
+      run: |
+        # Log the pod's IB Gateway off its IBKR session BEFORE k3d nukes the
+        # node — `k3d cluster delete` hard-kills the pod, leaving the shared
+        # paper-account session lingering for the next matrix leg. Delete the
+        # StatefulSet first (--wait=false) so it can't recreate the pod
+        # mid-teardown; the pod then has its 120s grace window, during which
+        # IBC STOP triggers a clean File>Exit logoff. All steps are
+        # best-effort: when an earlier failure skipped the k8s steps there is
+        # no cluster, and every command here is guarded with `|| true`.
+        kubectl -n ib-gateway delete statefulset ib-gateway --wait=false 2>/dev/null || true
+        scripts/ci/graceful-stop.sh k8s ib-gateway-0 || true
+        kubectl -n ib-gateway wait --for=delete pod/ib-gateway-0 --timeout=120s 2>/dev/null || true
+
     - name: Tear down k3d cluster
       if: always()
       run: k3d cluster delete ib-gateway-ci || true
@@ -197,6 +229,20 @@ jobs:
       run: |
         leftovers=$(docker ps -aq)
         if [ -n "$leftovers" ]; then
+          # Best-effort clean IB logoff before force-removal, so a failed
+          # step does not leave a half-open session for the next leg.
+          for c in $leftovers; do
+            scripts/ci/graceful-stop.sh docker "$c" || true
+          done
           docker rm -f $leftovers
         fi
+
+    - name: Cooldown so IB releases the account session before the next arch leg
+      if: always()
+      run: |
+        # max-parallel:1 holds the next matrix leg until this job finishes.
+        # Even after a clean IBC STOP, give IB's account server a moment to
+        # mark the session free; this also covers a failed leg that never
+        # logged off cleanly.
+        sleep 120
 
