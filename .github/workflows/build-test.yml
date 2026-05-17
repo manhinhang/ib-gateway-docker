@@ -19,7 +19,14 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Build and run the full functional suite natively on each architecture.
+    # The matrix value only selects the runner; each build targets the
+    # runner's native arch, so no QEMU emulation is involved.
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     timeout-minutes: 25
     env:

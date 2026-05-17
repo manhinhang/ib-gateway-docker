@@ -87,8 +87,18 @@ RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH} && mkdir -p /h
 # download IB TWS
 COPY --from=downloader /tmp/ibgw.sh /tmp/ibgw.sh
 COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
+# IB ships a single Linux installer carrying a bundled x64 JVM. On arm64 that
+# JVM cannot run, so point install4j at the apt-installed arm64 openjdk-17 JRE
+# via app_java_home. amd64 keeps using the installer's bundled JVM unchanged.
+# TARGETARCH is populated automatically by buildx.
+ARG TARGETARCH
 RUN IB_GATEWAY_VERSION=$(cat /tmp/ibgw-version) && \
-/tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
+    if [ "$TARGETARCH" = "arm64" ]; then \
+      JRE_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")" && \
+      app_java_home="$JRE_HOME" /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION} ; \
+    else \
+      /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION} ; \
+    fi
 # remove files
 RUN rm /tmp/ibgw.sh
 RUN rm /tmp/ibgw-version
