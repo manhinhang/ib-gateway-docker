@@ -31,7 +31,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  build:
+  build-arch:
     # Build and run the full functional suite natively on each architecture.
     # The matrix value only selects the runner; each build targets the
     # runner's native arch, so no QEMU emulation is involved.
@@ -245,4 +245,24 @@ jobs:
         # mark the session free; this also covers a failed leg that never
         # logged off cleanly.
         sleep 120
+
+  # Aggregate gate. The build-arch job above is a matrix, so it reports per-leg
+  # check contexts ("build-arch (linux/amd64)", "build-arch (linux/arm64)") and
+  # never a plain "build". master branch protection requires a context named
+  # exactly "build", so this single non-matrix job re-introduces it: it passes
+  # only when every architecture leg succeeded. Keeping the required context
+  # stable here means the matrix can change without ever touching branch
+  # protection.
+  build:
+    name: build
+    needs: build-arch
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Require every architecture leg to succeed
+      run: |
+        if [ "${{ needs.build-arch.result }}" != "success" ]; then
+          echo "build-arch did not succeed: ${{ needs.build-arch.result }}"
+          exit 1
+        fi
 
