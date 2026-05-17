@@ -11,6 +11,14 @@ on:
   workflow_dispatch:
   workflow_call:
 
+# Only one build-test run per ref at a time. Each run logs into the shared
+# IB paper account, and IB Gateway allows a single session per account, so
+# a superseded run must be cancelled before the new one starts — otherwise
+# the old run's still-logged-in containers conflict with the new one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   # Opt every JavaScript-based action into Node.js 24. Node 20 is deprecated
   # on GitHub-hosted runners and will be removed on 2026-09-16; without this
