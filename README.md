@@ -10,7 +10,7 @@ It's just pure `IB Gateway` and don't include any VNC service (for security reas
 
 This docker image just installed:
 
-- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) Latest: 10.46.1g / Stable: 10.45.1f
+- [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) Latest: 10.47.1b / Stable: 10.45.1f
 
 - [IBC](https://github.com/IbcAlpha/IBC) (3.23.0)
 
@@ -19,11 +19,6 @@ This docker image just installed:
 ```bash
 docker pull manhinhang/ib-gateway-docker
 ```
-
-The image is multi-arch (`linux/amd64` and `linux/arm64`), so Docker pulls
-the variant that matches your host automatically. arm64 hosts (Apple
-Silicon, AWS Graviton, 64-bit Raspberry Pi) run natively — no
-`--platform linux/amd64` emulation needed.
 
 ### Create a container from the image and run it
 ```bash
