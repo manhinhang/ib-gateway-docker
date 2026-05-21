@@ -48,6 +48,33 @@ RUN curl -fsSL "https://download2.interactivebrokers.com/installers/ibgateway/${
  | sed -E 's/^[^(]+\(//; s/\);[[:space:]]*$//' \
  | jq -r '.buildVersion' > /tmp/ibgw-version
 
+# Resolve the matching TWS API zip URL. IB routinely ships a new
+# gateway minor before publishing the matching twsapi_macunix.NN.01.zip
+# on github.io, so probe the exact derived URL and walk back through
+# earlier minors of the same major until one resolves. The result is
+# persisted to /tmp/ibgw-api-url for the healthcheck-tools stage,
+# which uses gradle:8.7.0-jdk17 and doesn't ship curl.
+RUN IB_VER=$(cat /tmp/ibgw-version) \
+ && MAJOR=$(echo "$IB_VER" | cut -d. -f1) \
+ && MINOR=$(echo "$IB_VER" | cut -d. -f2) \
+ && IB_API_URL="" \
+ && for offset in $(seq 0 10); do \
+      candidate=$((MINOR - offset)); \
+      [ "$candidate" -lt 0 ] && break; \
+      URL="https://interactivebrokers.github.io/downloads/twsapi_macunix.${MAJOR}${candidate}.01.zip"; \
+      if curl -fsIL -o /dev/null "$URL"; then \
+        echo "resolved IBAPI URL: $URL"; \
+        IB_API_URL="$URL"; \
+        break; \
+      fi; \
+      echo "  miss: $URL"; \
+    done \
+ && if [ -z "$IB_API_URL" ]; then \
+      echo "ERROR: no twsapi_macunix.${MAJOR}NN.01.zip found within 10 minors of ${IB_VER}" >&2; \
+      exit 1; \
+    fi \
+ && echo "$IB_API_URL" > /tmp/ibgw-api-url
+
 ######## healthcheck tools ########
 # temp container to build using gradle
 FROM gradle:8.7.0-jdk17 AS healthcheck-tools
@@ -55,12 +82,12 @@ ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY healthcheck $APP_HOME
 COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
+COPY --from=downloader /tmp/ibgw-api-url /tmp/ibgw-api-url
 
-# Derive IBAPI URL from gateway version (e.g., 10.45.1c → twsapi_macunix.1045.01.zip)
-RUN IB_VER=$(cat /tmp/ibgw-version) && \
-    MAJOR=$(echo $IB_VER | cut -d. -f1) && \
-    MINOR=$(echo $IB_VER | cut -d. -f2) && \
-    IB_API_URL="https://interactivebrokers.github.io/downloads/twsapi_macunix.${MAJOR}${MINOR}.01.zip" && \
+# Use the IBAPI URL resolved in the downloader stage (which probed
+# github.io for the closest available twsapi_macunix.NN.01.zip to the
+# installed gateway version).
+RUN IB_API_URL=$(cat /tmp/ibgw-api-url) && \
     gradle clean build -PibApiUrl=$IB_API_URL
 
 RUN mkdir -p $APP_HOME/build
