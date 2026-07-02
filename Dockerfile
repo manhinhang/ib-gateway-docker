@@ -128,9 +128,18 @@ RUN mkdir -p /tmp && mkdir -p ${IBC_PATH} && mkdir -p ${TWS_PATH} && mkdir -p /h
 COPY --from=downloader /tmp/ibgw.sh /tmp/ibgw.sh
 COPY --from=downloader /tmp/ibgw-version /tmp/ibgw-version
 # Install IB Gateway from the native per-arch installer downloaded above.
-# Each arch's installer carries a matching bundled JVM, so no override needed.
+# The installer bundles its own JRE — which ships JavaFX and the native libs
+# IB Gateway's UI needs — under <install-dir>/jre. IB Gateway must run on that
+# bundled JRE (the system openjdk-17-jre lacks JavaFX, so the login dialog
+# never renders). But the installer records the JRE path in
+# .install4j/inst_jre.cfg as its temp self-extraction dir
+# (/tmp/ibgw.sh.<n>.dir/jre), which is deleted after the build — leaving IBC
+# unable to locate java at runtime. Rewrite the cfg to point at the real
+# bundled JRE so IBC resolves it. (Same fix as the upstream gnzsnz image.)
 RUN IB_GATEWAY_VERSION=$(cat /tmp/ibgw-version) && \
-    /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION}
+    /tmp/ibgw.sh -q -dir /root/Jts/ibgateway/${IB_GATEWAY_VERSION} && \
+    echo "/root/Jts/ibgateway/${IB_GATEWAY_VERSION}/jre" \
+      > "/root/Jts/ibgateway/${IB_GATEWAY_VERSION}/.install4j/inst_jre.cfg"
 # remove files
 RUN rm /tmp/ibgw.sh
 RUN rm /tmp/ibgw-version
