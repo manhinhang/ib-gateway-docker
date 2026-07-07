@@ -12,7 +12,7 @@ This docker image just installed:
 
 - [IB Gateway](https://www.interactivebrokers.com/en/index.php?f=16457) Latest: 10.48.1d / Stable: 10.45.1h
 
-- [IBC](https://github.com/IbcAlpha/IBC) (3.24.0)
+- [IBC](https://github.com/IbcAlpha/IBC) (3.24.1)
 
 ## Pull the Docker image from Docker Hub
 
