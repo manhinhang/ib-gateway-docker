@@ -43,24 +43,34 @@ trap 'cleanup' INT TERM
 #
 # IBC logs this specific window as a *dialog* (not a *frame*) titled
 # "IBKR Gateway" — the only such dialog in the login flow — so we watch IBC's
-# output for it and click its default OK button via xdotool. `key --window`
-# targets the window directly, which is reliable under Xvfb (no window manager);
-# Return on the main gateway window is harmless. When AutoRestartTime is empty
-# the dialog never appears and this trigger simply never fires. The monitor
-# stays live for the container's lifetime, so it also re-dismisses the dialog
-# after each nightly soft restart.
+# output for it and activate its default OK button via xdotool. The dialog is a
+# JOptionPane whose OK is the default button, so Return/space activates it once
+# the window holds X input focus. We give focus with `windowfocus` (XSetInputFocus,
+# which works under Xvfb with no window manager) and then send the keys with a
+# plain `xdotool key` — i.e. XTEST synthetic input, which the JVM honours.
+# (`key --window` uses XSendEvent, which Java ignores — that was the first
+# attempt's failure.) Return/space to the main gateway window is harmless. When
+# AutoRestartTime is empty the dialog never appears and this trigger never fires.
+# The monitor stays live for the container's lifetime, so it also re-dismisses
+# the dialog after each nightly soft restart.
+#
+# This reader does NOT echo its input — `tee` (below) already forwards every IBC
+# line to the container's stdout; here we emit only our own diagnostics.
 dismiss_autorestart_dialog() {
     while IFS= read -r line; do
-        printf '%s\n' "$line"
         case "$line" in
             *"detected dialog entitled: IBKR Gateway"*Opened*)
+                echo "start.sh: auto-restart confirmation dialog detected — dismissing via xdotool"
                 (
-                    for _ in $(seq 1 10); do
-                        sleep 1
-                        xdotool search --name "^IBKR Gateway$" 2>/dev/null | while IFS= read -r wid; do
-                            xdotool key --window "$wid" --clearmodifiers Return 2>/dev/null || true
+                    for _ in $(seq 1 20); do
+                        for wid in $(xdotool search --name "IBKR Gateway" 2>/dev/null); do
+                            xdotool windowfocus "$wid" 2>/dev/null || true
+                            xdotool key --clearmodifiers Return 2>/dev/null || true
+                            xdotool key --clearmodifiers space 2>/dev/null || true
                         done
+                        sleep 1
                     done
+                    echo "start.sh: auto-restart dialog-dismiss attempts finished"
                 ) &
                 ;;
         esac
@@ -170,4 +180,4 @@ set -o pipefail
 ${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
      "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}" 2>&1 \
-  | tee >(dismiss_autorestart_dialog >/dev/null)
+  | tee >(dismiss_autorestart_dialog)
