@@ -31,6 +31,79 @@ cleanup() {
 
 #Trap TERM
 trap 'cleanup' INT TERM
+
+# Dismiss IB Gateway's auto-restart confirmation dialog.
+#
+# IBC 3.24.1 deleted its AutoRestartConfirmationDialog handler (release notes:
+# "redundant code that is no longer invoked has been removed"). But IB Gateway
+# still shows the "trading platform restart automatically" confirmation at
+# startup whenever AutoRestartTime is set — which we always do below. On 3.24.1
+# that dialog is unhandled, stays modal, and IB Gateway never opens its API
+# port, so the healthcheck hangs forever.
+#
+# IBC logs this specific window as a *dialog* (not a *frame*) titled
+# "IBKR Gateway" — the only such dialog in the login flow — so we watch IBC's
+# output for it and dismiss it via xdotool. The removed IBC handler *clicked* the
+# OK button (SwingUtils.clickButton), so we do the same: a real XTEST mouse click
+# on the button, which is more reliable than Enter/space (those only fire if OK
+# is the default button and a component holds keyboard focus — it isn't/doesn't
+# here). We target only the small confirmation dialog (not the large main gateway
+# window) by geometry, and click where a JOptionPane's OK button sits: centred
+# horizontally, near the bottom edge. windowfocus (XSetInputFocus) works under
+# Xvfb with no window manager; the click uses XTEST, which the JVM honours
+# (`key --window`/XSendEvent is ignored — that was the first attempt's failure).
+# When AutoRestartTime is empty the dialog never appears and this never fires.
+# The monitor stays live for the container's lifetime, so it also re-dismisses
+# the dialog after each nightly soft restart.
+#
+# This reader does NOT echo its input — `tee` (below) already forwards every IBC
+# line to the container's stdout; here we emit only our own diagnostics.
+dismiss_autorestart_dialog() {
+    while IFS= read -r line; do
+        case "$line" in
+            *"detected dialog entitled: IBKR Gateway"*Opened*)
+                echo "start.sh: auto-restart confirmation dialog detected — dismissing via xdotool"
+                (
+                    sleep 1
+                    # One-time inventory so we can see every mapped window's name
+                    # and geometry if dismissal still misses.
+                    echo "start.sh: [dismiss] window inventory:"
+                    for w in $(xdotool search --name "." 2>/dev/null); do
+                        n=$(xdotool getwindowname "$w" 2>/dev/null || echo '?')
+                        g=$(xdotool getwindowgeometry "$w" 2>/dev/null | tr '\n' ' ' | tr -s ' ')
+                        echo "start.sh: [dismiss]   win=$w name='$n' |$g"
+                    done
+                    for attempt in $(seq 1 30); do
+                        for wid in $(xdotool search --name "IBKR Gateway" 2>/dev/null); do
+                            geo=$(xdotool getwindowgeometry --shell "$wid" 2>/dev/null) || continue
+                            eval "$geo"   # sets X Y WIDTH HEIGHT (and WINDOW/SCREEN)
+                            # The confirmation dialog is short (~175px tall); the
+                            # main gateway windows are tall (>500px). Select by
+                            # height so we act only on the dialog, whatever its
+                            # width.
+                            if [ "${HEIGHT:-9999}" -le 350 ]; then
+                                cy=$(( Y + HEIGHT - 25 ))
+                                echo "start.sh: [dismiss attempt $attempt] win=$wid ${WIDTH}x${HEIGHT}+${X}+${Y} -> focus+Return + click row y=$cy"
+                                xdotool windowfocus "$wid" 2>/dev/null || true
+                                xdotool key --clearmodifiers Return 2>/dev/null || true
+                                # The dialog has a single OK button, but its
+                                # horizontal position varies (centre vs offset),
+                                # so click a few points along the button row.
+                                for num in 2 3 4; do
+                                    cx=$(( X + WIDTH * num / 6 ))
+                                    xdotool mousemove "$cx" "$cy" click 1 2>/dev/null || true
+                                done
+                            fi
+                        done
+                        sleep 1
+                    done
+                    echo "start.sh: auto-restart dialog-dismiss attempts finished"
+                ) &
+                ;;
+        esac
+    done
+}
+
 echo "IB gateway starting..."
 IB_GATEWAY_VERSION=$(ls $TWS_PATH/ibgateway)
 
@@ -126,6 +199,12 @@ sed -i "s|^IbPassword=.*|IbPassword=$(escape_sed_repl "${IB_PASSWORD}")|" "${IBC
 sed -i "s|^TradingMode=.*|TradingMode=$(escape_sed_repl "${TRADING_MODE}")|" "${IBC_INI}"
 unset IB_PASSWORD
 
+# Pipe IBC's output through the auto-restart dialog monitor. `tee` keeps every
+# line on the container's stdout (so `docker logs` is unchanged) while the
+# monitor reads a copy and dismisses the confirmation dialog. pipefail makes the
+# pipeline surface ibcstart's exit status instead of tee's.
+set -o pipefail
 ${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
-     "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
+     "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}" 2>&1 \
+  | tee >(dismiss_autorestart_dialog)

@@ -111,6 +111,7 @@ RUN apt-get update \
     socat \
     procps \
     xterm \
+    xdotool \
     openjdk-17-jre \
  && rm -rf /var/lib/apt/lists/*
 
