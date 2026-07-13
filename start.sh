@@ -43,14 +43,16 @@ trap 'cleanup' INT TERM
 #
 # IBC logs this specific window as a *dialog* (not a *frame*) titled
 # "IBKR Gateway" — the only such dialog in the login flow — so we watch IBC's
-# output for it and activate its default OK button via xdotool. The dialog is a
-# JOptionPane whose OK is the default button, so Return/space activates it once
-# the window holds X input focus. We give focus with `windowfocus` (XSetInputFocus,
-# which works under Xvfb with no window manager) and then send the keys with a
-# plain `xdotool key` — i.e. XTEST synthetic input, which the JVM honours.
-# (`key --window` uses XSendEvent, which Java ignores — that was the first
-# attempt's failure.) Return/space to the main gateway window is harmless. When
-# AutoRestartTime is empty the dialog never appears and this trigger never fires.
+# output for it and dismiss it via xdotool. The removed IBC handler *clicked* the
+# OK button (SwingUtils.clickButton), so we do the same: a real XTEST mouse click
+# on the button, which is more reliable than Enter/space (those only fire if OK
+# is the default button and a component holds keyboard focus — it isn't/doesn't
+# here). We target only the small confirmation dialog (not the large main gateway
+# window) by geometry, and click where a JOptionPane's OK button sits: centred
+# horizontally, near the bottom edge. windowfocus (XSetInputFocus) works under
+# Xvfb with no window manager; the click uses XTEST, which the JVM honours
+# (`key --window`/XSendEvent is ignored — that was the first attempt's failure).
+# When AutoRestartTime is empty the dialog never appears and this never fires.
 # The monitor stays live for the container's lifetime, so it also re-dismisses
 # the dialog after each nightly soft restart.
 #
@@ -62,11 +64,29 @@ dismiss_autorestart_dialog() {
             *"detected dialog entitled: IBKR Gateway"*Opened*)
                 echo "start.sh: auto-restart confirmation dialog detected — dismissing via xdotool"
                 (
-                    for _ in $(seq 1 20); do
+                    sleep 1
+                    # One-time inventory so we can see every mapped window's name
+                    # and geometry if dismissal still misses.
+                    echo "start.sh: [dismiss] window inventory:"
+                    for w in $(xdotool search --name "." 2>/dev/null); do
+                        n=$(xdotool getwindowname "$w" 2>/dev/null || echo '?')
+                        g=$(xdotool getwindowgeometry "$w" 2>/dev/null | tr '\n' ' ' | tr -s ' ')
+                        echo "start.sh: [dismiss]   win=$w name='$n' |$g"
+                    done
+                    for attempt in $(seq 1 30); do
                         for wid in $(xdotool search --name "IBKR Gateway" 2>/dev/null); do
-                            xdotool windowfocus "$wid" 2>/dev/null || true
-                            xdotool key --clearmodifiers Return 2>/dev/null || true
-                            xdotool key --clearmodifiers space 2>/dev/null || true
+                            geo=$(xdotool getwindowgeometry --shell "$wid" 2>/dev/null) || continue
+                            eval "$geo"   # sets X Y WIDTH HEIGHT (and WINDOW/SCREEN)
+                            # Skip the large main gateway window; act only on the
+                            # small confirmation dialog.
+                            if [ "${WIDTH:-9999}" -le 800 ] && [ "${HEIGHT:-9999}" -le 500 ]; then
+                                cx=$(( X + WIDTH / 2 ))
+                                cy=$(( Y + HEIGHT - 25 ))
+                                echo "start.sh: [dismiss attempt $attempt] win=$wid ${WIDTH}x${HEIGHT}+${X}+${Y} -> focus+Return, click ($cx,$cy)"
+                                xdotool windowfocus "$wid" 2>/dev/null || true
+                                xdotool key --clearmodifiers Return 2>/dev/null || true
+                                xdotool mousemove "$cx" "$cy" click 1 2>/dev/null || true
+                            fi
                         done
                         sleep 1
                     done
