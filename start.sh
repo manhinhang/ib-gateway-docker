@@ -31,6 +31,42 @@ cleanup() {
 
 #Trap TERM
 trap 'cleanup' INT TERM
+
+# Dismiss IB Gateway's auto-restart confirmation dialog.
+#
+# IBC 3.24.1 deleted its AutoRestartConfirmationDialog handler (release notes:
+# "redundant code that is no longer invoked has been removed"). But IB Gateway
+# still shows the "trading platform restart automatically" confirmation at
+# startup whenever AutoRestartTime is set — which we always do below. On 3.24.1
+# that dialog is unhandled, stays modal, and IB Gateway never opens its API
+# port, so the healthcheck hangs forever.
+#
+# IBC logs this specific window as a *dialog* (not a *frame*) titled
+# "IBKR Gateway" — the only such dialog in the login flow — so we watch IBC's
+# output for it and click its default OK button via xdotool. `key --window`
+# targets the window directly, which is reliable under Xvfb (no window manager);
+# Return on the main gateway window is harmless. When AutoRestartTime is empty
+# the dialog never appears and this trigger simply never fires. The monitor
+# stays live for the container's lifetime, so it also re-dismisses the dialog
+# after each nightly soft restart.
+dismiss_autorestart_dialog() {
+    while IFS= read -r line; do
+        printf '%s\n' "$line"
+        case "$line" in
+            *"detected dialog entitled: IBKR Gateway"*Opened*)
+                (
+                    for _ in $(seq 1 10); do
+                        sleep 1
+                        xdotool search --name "^IBKR Gateway$" 2>/dev/null | while IFS= read -r wid; do
+                            xdotool key --window "$wid" --clearmodifiers Return 2>/dev/null || true
+                        done
+                    done
+                ) &
+                ;;
+        esac
+    done
+}
+
 echo "IB gateway starting..."
 IB_GATEWAY_VERSION=$(ls $TWS_PATH/ibgateway)
 
@@ -126,6 +162,12 @@ sed -i "s|^IbPassword=.*|IbPassword=$(escape_sed_repl "${IB_PASSWORD}")|" "${IBC
 sed -i "s|^TradingMode=.*|TradingMode=$(escape_sed_repl "${TRADING_MODE}")|" "${IBC_INI}"
 unset IB_PASSWORD
 
+# Pipe IBC's output through the auto-restart dialog monitor. `tee` keeps every
+# line on the container's stdout (so `docker logs` is unchanged) while the
+# monitor reads a copy and dismisses the confirmation dialog. pipefail makes the
+# pipeline surface ibcstart's exit status instead of tee's.
+set -o pipefail
 ${IBC_PATH}/scripts/ibcstart.sh "$IB_GATEWAY_VERSION" -g \
      "--ibc-path=${IBC_PATH}" "--ibc-ini=${IBC_INI}" \
-     "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}"
+     "--on2fatimeout=${TWOFA_TIMEOUT_ACTION}" 2>&1 \
+  | tee >(dismiss_autorestart_dialog >/dev/null)
