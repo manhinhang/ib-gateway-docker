@@ -77,15 +77,22 @@ dismiss_autorestart_dialog() {
                         for wid in $(xdotool search --name "IBKR Gateway" 2>/dev/null); do
                             geo=$(xdotool getwindowgeometry --shell "$wid" 2>/dev/null) || continue
                             eval "$geo"   # sets X Y WIDTH HEIGHT (and WINDOW/SCREEN)
-                            # Skip the large main gateway window; act only on the
-                            # small confirmation dialog.
-                            if [ "${WIDTH:-9999}" -le 800 ] && [ "${HEIGHT:-9999}" -le 500 ]; then
-                                cx=$(( X + WIDTH / 2 ))
+                            # The confirmation dialog is short (~175px tall); the
+                            # main gateway windows are tall (>500px). Select by
+                            # height so we act only on the dialog, whatever its
+                            # width.
+                            if [ "${HEIGHT:-9999}" -le 350 ]; then
                                 cy=$(( Y + HEIGHT - 25 ))
-                                echo "start.sh: [dismiss attempt $attempt] win=$wid ${WIDTH}x${HEIGHT}+${X}+${Y} -> focus+Return, click ($cx,$cy)"
+                                echo "start.sh: [dismiss attempt $attempt] win=$wid ${WIDTH}x${HEIGHT}+${X}+${Y} -> focus+Return + click row y=$cy"
                                 xdotool windowfocus "$wid" 2>/dev/null || true
                                 xdotool key --clearmodifiers Return 2>/dev/null || true
-                                xdotool mousemove "$cx" "$cy" click 1 2>/dev/null || true
+                                # The dialog has a single OK button, but its
+                                # horizontal position varies (centre vs offset),
+                                # so click a few points along the button row.
+                                for num in 2 3 4; do
+                                    cx=$(( X + WIDTH * num / 6 ))
+                                    xdotool mousemove "$cx" "$cy" click 1 2>/dev/null || true
+                                done
                             fi
                         done
                         sleep 1
