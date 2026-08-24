@@ -115,6 +115,69 @@ RUN apt-get update \
     openjdk-17-jre \
  && rm -rf /var/lib/apt/lists/*
 
+# Screen-capture diagnostics — OPTIONAL, off by default.
+#
+# scripts/capture-screen.sh needs xwd (x11-apps), ImageMagick's convert, and
+# zbarimg (zbar-tools) to photograph the headless Xvfb display and decode a QR
+# code from it. That is a debugging workflow, not a runtime dependency, so it
+# is gated: production images should not carry ~50MB of tooling they never run.
+#
+# Enable with:  --build-arg ENABLE_SCREEN_CAPTURE=true
+ARG ENABLE_SCREEN_CAPTURE=false
+RUN if [ "$ENABLE_SCREEN_CAPTURE" = "true" ]; then \
+      apt-get update \
+   && apt-get install -y --no-install-recommends \
+      x11-apps \
+      imagemagick \
+      zbar-tools \
+   && rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "Skipping screen-capture tools (build with --build-arg ENABLE_SCREEN_CAPTURE=true to enable)"; \
+    fi
+
+# Passkey (WebAuthn) support — OPTIONAL, off by default.
+#
+# IB Gateway renders passkey second-factor ceremonies in an embedded Chromium
+# (JxBrowser, shipped inside jars/jxbrowser-linux64-*.jar). That Chromium needs
+# shared libraries the slim base image lacks; without them JxBrowser fails to
+# initialise with an UnsatisfiedLinkError naming the missing .so, and the
+# "Authenticate >" button in the Second Factor Authentication dialog does
+# nothing.
+#
+# This list is NOT the vendor's generic 54-package list — it is what
+# `ldd` reports as actually unresolved for the bundled
+# chromium/libtoolkit.so/libEGL.so against THIS image:
+#   libgbm.so.1  -> libgbm1
+#   libgtk-3.so.0, libgdk-3.so.0 -> libgtk-3-0
+#   libnss3.so, libnssutil3.so, libsmime3.so -> libnss3
+#   libnspr4.so  -> libnspr4
+# (libasound.so.2 and libXtst.so.6 are already present via xvfb/libxtst6;
+#  libjawt.so is resolved at runtime from IB's bundled JRE.)
+#
+# For the *cross-device* ("hybrid") passkey flow the ceremony shows a QR code
+# and the phone must reach this host over Bluetooth LE. Chromium talks to BlueZ
+# over D-Bus and aborts discovery unless an adapter is present AND powered
+# (device/fido/cable/v2_discovery.cc). docker-compose.passkey.yaml mounts the
+# *host's* D-Bus socket, so the host's bluetoothd owns the adapter and no
+# daemon runs in the container — hence libbluetooth3 + the dbus client libs
+# only, not the full bluez package. Installing these does NOT create an
+# adapter: the host still needs a real BLE radio and the phone must be within
+# range (~10m). See CLAUDE.md → Second-factor authentication.
+ARG ENABLE_PASSKEY=false
+RUN if [ "$ENABLE_PASSKEY" = "true" ]; then \
+      apt-get update \
+   && apt-get install -y --no-install-recommends \
+      libgbm1 \
+      libgtk-3-0 \
+      libnss3 \
+      libnspr4 \
+      libbluetooth3 \
+      libdbus-1-3 \
+   && rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "Skipping passkey support (build with --build-arg ENABLE_PASSKEY=true to enable)"; \
+    fi
+
 # set environment variables
 ENV TWS_INSTALL_LOG=/root/Jts/tws_install.log \
     IBC_INI=/root/ibc/config.ini \
@@ -168,7 +231,9 @@ ENV IBGW_PORT=4002 \
     HEALTHCHECK_API_ENABLE=false \
     IBC_AUTO_RESTART_TIME="11:00 AM" \
     IBC_COMMAND_SERVER_PORT=7462 \
-    IBC_BIND_ADDRESS=127.0.0.1
+    IBC_BIND_ADDRESS=127.0.0.1 \
+    IBC_SECOND_FACTOR_DEVICE="IB Key" \
+    IBC_RELOGIN_AFTER_2FA_TIMEOUT=yes
 
 EXPOSE $IBGW_PORT
 

@@ -1,0 +1,70 @@
+# Passkey (WebAuthn) overlay — for a LOCAL host with a real Bluetooth radio.
+#
+#   docker compose -f docker-compose.yaml -f docker-compose.passkey.yaml up -d
+#
+# Build the image with passkey support first (it is off by default):
+#   docker compose -f docker-compose.yaml -f docker-compose.passkey.yaml build
+#
+# ── What this does and does not achieve ──
+#
+# IB Gateway renders a passkey second factor in an embedded Chromium
+# (JxBrowser). For a passkey stored on a PHONE, Chromium uses the cross-device
+# "hybrid" flow: it shows a QR code, and after you scan it your phone must
+# reach THIS host over Bluetooth LE. The QR code only carries key material —
+# the BLE advertisement is what actually pairs the ceremony.
+#
+# Chromium reaches the adapter through BlueZ over D-Bus and aborts discovery
+# unless an adapter is present AND powered
+# (device/fido/cable/v2_discovery.cc: `if (!bt_adapter->IsPresent())`).
+#
+# Therefore this overlay ONLY works when ALL of these hold:
+#   1. The host has a real Bluetooth LE radio (`hciconfig` / `bluetoothctl list`
+#      shows an adapter; /sys/class/bluetooth is non-empty).
+#   2. bluetoothd is running on the host.
+#   3. Your phone is within BLE range (~10m) of the host at login time.
+#
+# It CANNOT work on a remote VM, cloud server, or NAS with no BLE hardware —
+# BLE proximity is caBLE's anti-phishing property, not an implementation gap.
+# Verify the host first:
+#     ls /sys/class/bluetooth/          # must list hci0 (or similar)
+#     bluetoothctl list                 # must show a controller
+#     systemctl is-active bluetooth     # must be active
+#
+# If you need unattended headless operation, a USB security key
+# (--device=/dev/hidraw0) needs no Bluetooth at all.
+#
+# SECURITY: mounting the host's D-Bus system socket gives the container
+# considerable access to host services — it is not a narrow Bluetooth-only
+# grant. Prefer running this only on a machine you control, and only while
+# completing the login.
+
+services:
+  ib-gateway:
+    build:
+      context: .
+      network: host
+      args:
+        ENABLE_PASSKEY: "true"
+        # capture-screen.sh is the main way to see what the ceremony is showing
+        # on a headless display, so pull in its tooling alongside passkey support.
+        ENABLE_SCREEN_CAPTURE: "true"
+    environment:
+      # Which entry to preselect if IBKR shows a multi-device list. Must match
+      # the list entry EXACTLY. Empty means "do not preselect" — leave it empty
+      # unless you have confirmed the exact wording IBKR displays, since a
+      # non-matching value makes IBC select nothing and the dialog just waits.
+      - IBC_SECOND_FACTOR_DEVICE=${IBC_SECOND_FACTOR_DEVICE:-}
+      # Log every dialog IBC sees — the passkey ceremony is hard to diagnose
+      # blind, and this is what upstream asks for on login-hang reports.
+      - IBC_LOG_STRUCTURE_SCOPE=${IBC_LOG_STRUCTURE_SCOPE:-all}
+      - IBC_LOG_STRUCTURE_WHEN=${IBC_LOG_STRUCTURE_WHEN:-activate}
+    # Chromium crashes rendering pages with Docker's default 64MB /dev/shm.
+    shm_size: 1gb
+    volumes:
+      # Host D-Bus system bus — how Chromium reaches BlueZ. Read-write: the
+      # BLE stack needs to power/advertise on the adapter, not just read it.
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+    # CAP_NET_ADMIN lets the container manage the BLE adapter state that
+    # Chromium's caBLE discovery requires.
+    cap_add:
+      - NET_ADMIN

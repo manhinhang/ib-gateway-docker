@@ -47,11 +47,69 @@ ib-gateway-docker
 ```
 
 
+## Environment variables
+
+### Required
+
+| Variable | Description | Example |
+| - | - | - |
+| `IB_ACCOUNT` | Interactive Brokers username | `myuser` |
+| `IB_PASSWORD` | Interactive Brokers password | `mypassword` |
+| `TRADING_MODE` | Which account to log in to | `paper` or `live` |
+
+### Optional
+
+| Variable | Default | Description |
+| - | - | - |
+| `IBGW_PORT` | `4002` | External API port clients connect to |
+| `IBGW_INTERNAL_PORT` | `4001` | Port IB Gateway's Java actually binds; `socat` forwards `IBGW_PORT` to it |
+| `JAVA_HEAP_SIZE` | `768` | JVM heap size in MB |
+| `HEALTHCHECK_API_ENABLE` | `false` | Set `true` to expose the REST healthcheck on port 8080 |
+| `TWOFA_TIMEOUT_ACTION` | `restart` | What to do when 2FA times out (`restart` or `exit`) |
+| `IBC_AUTO_RESTART_TIME` | `11:00 AM` | Daily soft restart (UTC) that preserves the session so 2FA is not re-prompted. Empty string disables it |
+| `IBC_COMMAND_SERVER_PORT` | `7462` | Port IBC listens on for `RESTART`/`STOP`. `0` disables it |
+| `IBC_BIND_ADDRESS` | `127.0.0.1` | Address the command server binds to. **Do not** expose this beyond loopback |
+| `IBC_SECOND_FACTOR_DEVICE` | `IB Key` | Which 2FA method to preselect when several are registered. Must match IBKR's list entry exactly; empty means "pick manually" |
+| `IBC_RELOGIN_AFTER_2FA_TIMEOUT` | `yes` | Retry login after an unanswered 2FA prompt. With `no`, the gateway waits at the dialog indefinitely |
+| `IBC_LOG_STRUCTURE_SCOPE` | *(unset)* | Set `all` with `IBC_LOG_STRUCTURE_WHEN=activate` to log every dialog IBC sees — use when login hangs |
+| `IBC_LOG_STRUCTURE_WHEN` | *(unset)* | See above; `activate` logs on window activation |
+
+To run paper and live gateways side by side, `docker-compose.multi.yaml` reads
+`IB_PAPER_ACCOUNT`/`IB_PAPER_PASSWORD` and `IB_LIVE_ACCOUNT`/`IB_LIVE_PASSWORD`
+from your `.env` and maps them onto each service's `IB_ACCOUNT`/`IB_PASSWORD`.
+Those four are compose-level conveniences — the image itself only ever reads
+`IB_ACCOUNT`/`IB_PASSWORD`. See [.env.example](./.env.example).
+
+### Build arguments
+
+| Arg | Default | Description |
+| - | - | - |
+| `CHANNEL` | `latest` | IB Gateway release channel (`latest` or `stable`) |
+| `ENABLE_SCREEN_CAPTURE` | `false` | Install the tooling `scripts/capture-screen.sh` needs to photograph the headless display (~50MB, debugging only) |
+| `ENABLE_PASSKEY` | `false` | Install the Chromium/Bluetooth libraries needed to render a passkey (WebAuthn) second factor (~40MB) |
+
+### Second-factor authentication
+
+**IB Key** (the IBKR Mobile push you approve on your phone) works out of the
+box. Passkeys are rendered in an embedded browser, and a passkey stored on a
+phone additionally needs a Bluetooth LE link between the phone and the machine
+running the gateway — so it needs the optional passkey build *and* a host with
+a real Bluetooth radio:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.passkey.yaml up -d
+```
+
+This cannot work on a remote VM or cloud server with no Bluetooth hardware. A
+USB security key needs no Bluetooth and works anywhere the device can be passed
+through. See [CLAUDE.md](./CLAUDE.md) for the full breakdown.
+
 ## Container usage example
 
 | Example | Link | Description |
 | - | - | - |
 | ib_insync | [examples/ib_insync](./examples/ib_insync) | This example demonstrated how to connect `IB Gateway`
+| kubernetes | [examples/k8s](./examples/k8s) | Plain-YAML manifests for single and multi-gateway deployments
 
 
 ## Health check container

@@ -187,9 +187,158 @@ sensitivity as `.secrets`.
 - `HEALTHCHECK_API_ENABLE` - Enable REST API health check (default: false)
 - `TWOFA_TIMEOUT_ACTION` - Action on 2FA timeout (default: restart)
 - `DISPLAY` - X display (default: :0, set automatically)
-- `IBC_AUTO_RESTART_TIME` - When IB Gateway performs its nightly soft restart that preserves the session (default: `11:55 PM`). Set to empty string to disable.
+- `IBC_AUTO_RESTART_TIME` - When IB Gateway performs its nightly soft restart that preserves the session (default: `11:00 AM`, UTC). Set to empty string to disable.
 - `IBC_COMMAND_SERVER_PORT` - Port IBC's command server listens on for `RESTART`/`STOP` commands (default: 7462). Set to 0 to disable. Multi-container deployments must set distinct ports per service.
 - `IBC_BIND_ADDRESS` - Address the IBC command server binds to (default: `127.0.0.1`). **DO NOT** set to a non-loopback value without locking down access — anyone who can reach the port can shut down or restart your gateway.
+- `IBC_SECOND_FACTOR_DEVICE` - Which 2FA method IBC preselects when the account has more than one registered (default: `IB Key`). Must match IBKR's device-list entry exactly; set to empty string to disable preselection and pick manually. See *Second-factor authentication* below.
+- `IBC_RELOGIN_AFTER_2FA_TIMEOUT` - Whether IBC retries login after an unanswered 2FA prompt (default: `yes`). Must be `yes` or `no`.
+- `IBC_LOG_STRUCTURE_SCOPE` / `IBC_LOG_STRUCTURE_WHEN` - Opt-in IBC window logging for diagnosing a dialog that blocks login headlessly (unset = upstream defaults `known`/`never`). Set to `all` / `activate` when investigating.
+
+### Build arguments
+
+Passed with `--build-arg` (or via a compose `build.args` block), not at runtime.
+
+| Arg | Default | Purpose |
+|-----|---------|---------|
+| `CHANNEL` | `latest` | IB Gateway release channel to install (`latest` or `stable`). |
+| `TARGETARCH` | (set by buildx) | Selects the native IB installer (`amd64` → `linux-x64`, `arm64` → `linux-arm`). |
+| `ENABLE_SCREEN_CAPTURE` | `false` | Installs `x11-apps`, `imagemagick`, `zbar-tools` for `scripts/capture-screen.sh` (~50MB). Debugging only — the script fails with a rebuild hint if absent. |
+| `ENABLE_PASSKEY` | `false` | Installs the Chromium + Bluetooth client libraries needed to *render* a passkey (WebAuthn) second factor (~40MB). See *Enabling passkey (WebAuthn) support*. |
+
+## Helper scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/restart-ib-gateway.sh` | Sends `RESTART` to IBC's command server over loopback — soft-restarts IB Gateway *without* re-triggering 2FA. Use instead of `docker compose restart`. |
+| `scripts/verify-session-persistence.sh` | End-to-end check that a soft restart preserves the session (no 2FA prompt, autorestart file present). Exit 0 = pass, 1 = fail, 2 = preconditions missing. |
+| `scripts/capture-screen.sh` | Captures the headless Xvfb display to PNG (root window plus each named window by id) and decodes any QR code. Use to identify a modal dialog blocking login. |
+| `scripts/detect_ibc_ver.py` | Resolves the newest IBC release; used by the version-detection workflow. |
+| `scripts/extract_ib_gateway_major_minor.sh` | Parses a version like `10.45.1c` into `IB_GATEWAY_MAJOR`/`_MINOR`. **Must be sourced**, not executed — it sets caller-scope variables. |
+| `scripts/ci/graceful-stop.sh` | CI helper that logs IB Gateway off its IBKR session before the container/pod is destroyed. |
+| `scripts/k8s/k3d-up.sh` / `k3d-down.sh` | Stands up a local k3d cluster, builds and imports the image, applies the `examples/k8s/` manifests (and tears it all down). |
+| `scripts/k8s/restart-ib-gateway-k8s.sh` | Kubernetes equivalent of the IBC `RESTART` helper. |
+| `scripts/k8s/verify-session-persistence-k8s.sh` | Kubernetes equivalent of the session-persistence check. |
+
+
+## Second-factor authentication
+
+**IBKR Mobile push ("IB Key") works out of the box.** Passkeys need the
+optional build (`ENABLE_PASSKEY=true` + `docker-compose.passkey.yaml`) *and*
+real Bluetooth hardware on the host — the constraint is the transport, not
+configuration:
+
+| Method | Works headlessly? | Why |
+|--------|-------------------|-----|
+| **IB Key** (IBKR Mobile push — tap Approve) | **Yes**, no extras | Pure push/pull over the network; no browser or local hardware involved |
+| Passkey on a phone (QR code) | **Only on a host with a BLE radio** | The host must *receive a BLE advertisement* from the phone — the QR code only carries key material. Chromium's `device/fido/cable/v2_discovery.cc` aborts discovery unless an adapter is present *and* powered, reached via BlueZ over D-Bus. Build with `ENABLE_PASSKEY=true` and run `docker-compose.passkey.yaml` (mounts the host D-Bus). Impossible on a remote VM with no radio, and the phone must be within ~10m |
+| Passkey in a password manager (e.g. 1Password) | **No** | Needs either a browser extension — impossible in IB Gateway's *embedded* JxBrowser — or the same phone hybrid flow above. Changing where the credential is stored does not create a transport |
+| USB security key | Only with passthrough | Needs `--device=/dev/hidraw0` plus explicit ownership/mode. udev's `uaccess` ACLs are granted to an active logind seat, which a container does not have |
+
+IBC ≥3.24.0 does pass `-DjxBrowserKey` (read from `.install4j/i4jparams.conf`)
+so passkey ceremonies can *render* — the build always pulls the newest IBC, so
+that fix is present. But rendering is not the blocker for a phone passkey; the
+BLE transport is. Adding a passkey to an account that currently uses IB Key
+makes IBKR show a device-selection list, so keep `IBC_SECOND_FACTOR_DEVICE` in
+sync with the exact entry text.
+
+### Seeing what is on the headless screen
+
+`scripts/capture-screen.sh` captures the container's Xvfb display to a PNG
+(via `xwd` + ImageMagick, run inside the container so the host needs no X
+tooling) and decodes any QR code in it with `zbarimg`, re-rendering it in the
+terminal with `qrencode`.
+
+```bash
+./scripts/capture-screen.sh                 # -> ./ib-gateway-screen.png
+CONTAINER=<name|id> ./scripts/capture-screen.sh
+```
+
+It reads `DISPLAY` from the container rather than assuming `:0`, since
+`docker-compose.yaml` sets `:99` to avoid colliding with a host X server
+under host networking.
+
+Use it to identify a modal dialog that is blocking login — IB Gateway will
+not open its API port while one is up, so the healthcheck hangs with no clue
+as to why. Pair it with `IBC_LOG_STRUCTURE_SCOPE=all` /
+`IBC_LOG_STRUCTURE_WHEN=activate`.
+
+**On passkey QR codes:** the script decodes a QR if one is present, but for a
+passkey login do not expect one. Chromium only offers the "use a phone or
+tablet" QR option when a Bluetooth adapter is present, so in a container the
+dialog offers only the USB security-key path and no QR is generated. Even
+with a QR, scanning it from a remote device cannot complete the login — see
+the transport table above. The script prints this caveat when it decodes a
+`FIDO:/` payload.
+
+**The capture may contain account details** (account number, username on the
+login screen). It is written owner-only; delete it when done and redact
+before attaching to an issue.
+
+### Enabling passkey (WebAuthn) support
+
+Passkey support is **off by default** — the libraries only matter for accounts
+whose second factor is a passkey, and they add ~40MB.
+
+```bash
+# Build with the Chromium + BlueZ dependencies
+docker compose -f docker-compose.yaml -f docker-compose.passkey.yaml build
+# Run with D-Bus + shm wired up
+docker compose -f docker-compose.yaml -f docker-compose.passkey.yaml up -d
+```
+
+`docker-compose.passkey.yaml` sets `shm_size: 1gb` (Chromium crashes on
+Docker's default 64MB `/dev/shm`), mounts the host's D-Bus system socket so
+Chromium can reach BlueZ, and adds `NET_ADMIN`.
+
+**Which libraries, and why these.** The list is not the vendor's generic
+54-package recommendation — it is what `ldd` reports as actually unresolved
+for the Chromium that ships inside
+`jars/jxbrowser-linux64-8.9.4.jar` (extract with the bundled `7zr-linux64`)
+against this image:
+
+| Missing object | Package |
+|---|---|
+| `libgbm.so.1` | `libgbm1` |
+| `libgtk-3.so.0`, `libgdk-3.so.0` | `libgtk-3-0` |
+| `libnss3.so`, `libnssutil3.so`, `libsmime3.so` | `libnss3` |
+| `libnspr4.so` | `libnspr4` |
+
+`libasound.so.2` and `libXtst.so.6` are already satisfied via `xvfb` /
+`libxtst6`; `libjawt.so` resolves at runtime from IB's bundled JRE. Verified:
+with these installed, `ldd` reports no unresolved objects for `chromium`,
+`libtoolkit.so`, `libEGL.so`, `libGLESv2.so`, or `libipc.so`.
+
+**This does not make a phone passkey work on a headless server.** Installing
+BlueZ does not create a radio. Chromium's cross-device flow needs an adapter
+that is present *and* powered, plus your phone within BLE range. Check the
+host before expecting the QR flow to appear:
+
+```bash
+ls /sys/class/bluetooth/     # must list hci0 (or similar)
+bluetoothctl list            # must show a controller
+systemctl is-active bluetooth
+```
+
+An empty `/sys/class/bluetooth` means the QR option will not be offered at
+all — the dialog will show only the USB security-key path.
+
+**Security note:** mounting the host D-Bus system socket is a broad grant, not
+a Bluetooth-only one. Prefer enabling this overlay only on a machine you
+control.
+
+### Why `IBC_RELOGIN_AFTER_2FA_TIMEOUT` defaults to `yes`
+
+IBC's `LoginManager.reloginPermitted()` gates the *entire* 2FA-timeout path on
+this setting. With the upstream default `no`, an unanswered 2FA prompt logs
+`Re-login after second factor authentication timeout not required` and then
+nothing happens — IB Gateway sits at the dialog indefinitely and never opens
+its API port. `TWOFA_TIMEOUT_ACTION=restart` cannot help, because the restart
+is driven by exit code 1111 (`SECOND_FACTOR_AUTH_LOGIN_TIMED_OUT`), which IBC
+only raises when relogin is permitted. So the image's `restart` default was
+unreachable for the timeout case until this was set to `yes`.
+
+Retrying is safe: IBC's `TooManyFailedLoginAttemptsDialogHandler` parses
+IBKR's "please wait N seconds" lockout message and waits out the backoff.
 
 ## Development Workflow
 

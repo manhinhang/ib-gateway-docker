@@ -192,6 +192,57 @@ sed -i "s|^CommandServerPort=.*|CommandServerPort=$(escape_sed_repl "${IBC_COMMA
 sed -i "s|^BindAddress=.*|BindAddress=$(escape_sed_repl "${IBC_BIND_ADDRESS}")|" "${IBC_INI}"
 sed -i "s|^AutoRestartTime=.*|AutoRestartTime=$(escape_sed_repl "${IBC_AUTO_RESTART_TIME}")|" "${IBC_INI}"
 
+# Second-factor authentication settings.
+#
+# SecondFactorDevice picks an entry from the device list IBKR shows when more
+# than one 2FA method is registered. It must match the list entry *exactly*.
+# "IB Key" (IBKR Mobile push) works headlessly with no extra dependencies. The
+# passkey/WebAuthn flow renders in an embedded browser and, for a passkey held
+# on a phone, additionally needs a BLE link between the phone and this host —
+# see docker-compose.passkey.yaml and CLAUDE.md.
+#
+# ReloginAfterSecondFactorAuthenticationTimeout is what makes
+# TWOFA_TIMEOUT_ACTION reachable for a missed 2FA prompt. IBC's
+# LoginManager.reloginPermitted() gates the whole timeout path on it: when it
+# is 'no', a 2FA prompt that times out logs "Re-login after second factor
+# authentication timeout not required" and then does *nothing* — IB Gateway
+# sits at the dialog forever and never opens its API port. Only when it is
+# 'yes' does IBC re-initiate login (after 5s) and, failing that, exit 1111,
+# which ibcstart.sh turns into a restart when --on2fatimeout=restart. So the
+# image's TWOFA_TIMEOUT_ACTION=restart default is dead code for the timeout
+# path unless this is 'yes'. Repeated attempts are safe: IBC's
+# TooManyFailedLoginAttemptsDialogHandler parses IBKR's lockout message and
+# waits out the backoff it demands.
+case "${IBC_RELOGIN_AFTER_2FA_TIMEOUT}" in
+  yes|no) ;;
+  *)
+    echo "IBC_RELOGIN_AFTER_2FA_TIMEOUT must be 'yes' or 'no', got: '${IBC_RELOGIN_AFTER_2FA_TIMEOUT}'" >&2
+    exit 1
+    ;;
+esac
+# SecondFactorDevice is only injected when non-empty. IBC's semantics: an empty
+# value means "do not preselect — let the user pick from the list". Forcing a
+# value on every boot would break accounts whose device list does not contain
+# the image default (e.g. passkey-only accounts, where nothing matches "IB Key"
+# and IBC would select nothing). Set IBC_SECOND_FACTOR_DEVICE='' to opt out.
+if [ -n "${IBC_SECOND_FACTOR_DEVICE}" ]; then
+    sed -i "s|^SecondFactorDevice=.*|SecondFactorDevice=$(escape_sed_repl "${IBC_SECOND_FACTOR_DEVICE}")|" "${IBC_INI}"
+else
+    sed -i "s|^SecondFactorDevice=.*|SecondFactorDevice=|" "${IBC_INI}"
+fi
+sed -i "s|^ReloginAfterSecondFactorAuthenticationTimeout=.*|ReloginAfterSecondFactorAuthenticationTimeout=$(escape_sed_repl "${IBC_RELOGIN_AFTER_2FA_TIMEOUT}")|" "${IBC_INI}"
+
+# Opt-in dialog logging. Under Xvfb there is no way to see a modal dialog that
+# is blocking login, so these make IBC log every window it observes — the
+# diagnostic IBC's maintainer asks for on login-hang reports. Off by default
+# (upstream values) because 'all' is verbose.
+if [ -n "${IBC_LOG_STRUCTURE_SCOPE}" ]; then
+    sed -i "s|^LogStructureScope=.*|LogStructureScope=$(escape_sed_repl "${IBC_LOG_STRUCTURE_SCOPE}")|" "${IBC_INI}"
+fi
+if [ -n "${IBC_LOG_STRUCTURE_WHEN}" ]; then
+    sed -i "s|^LogStructureWhen=.*|LogStructureWhen=$(escape_sed_repl "${IBC_LOG_STRUCTURE_WHEN}")|" "${IBC_INI}"
+fi
+
 # Inject credentials into the IBC config so they don't appear in
 # /proc/<pid>/cmdline (visible to any in-container 'ps').
 sed -i "s|^IbLoginId=.*|IbLoginId=$(escape_sed_repl "${IB_ACCOUNT}")|" "${IBC_INI}"
